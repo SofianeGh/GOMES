@@ -2,10 +2,10 @@
 #include <SDL2/SDL_ttf.h>
 #include <vector>
 #include <cstdio>
-#include "Constants.h"
-#include "Player.h"
-#include "Platform.h"
-#include "Menu.h"
+#include "Constants.hpp"
+#include "Player.hpp"
+#include "Platform.hpp"
+#include "Menu.hpp"
 
 // ----- FONT GLOBAL -----
 TTF_Font* font = nullptr;
@@ -56,14 +56,15 @@ int main()
         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
     );
 
-    // ---- Plateau ----
-    std::vector<Platform> platforms = {
-        Platform(0.f, 460.f, 800.f, 40.f),
-        Platform(80.f, 400.f, 130.f, 10.f),
-        Platform(250.f, 350.f, 100.f, 10.f),
-        Platform(400.f, 300.f, 150.f, 10.f),
-        Platform(600.f, 250.f, 120.f, 10.f)
-    };
+ std::vector<Platform> platforms = {
+    Platform(0.f, 460.f, 800.f, 40.f),     // Sol principal
+    Platform(100.f, 380.f, 150.f, 15.f),   // Première plateforme facile
+    Platform(300.f, 320.f, 120.f, 15.f),   // Deuxième plateforme
+    Platform(480.f, 270.f, 100.f, 15.f),   // Plateforme plus petite, saut plus difficile
+    Platform(620.f, 220.f, 80.f, 15.f),    // Plateforme étroite, défi précis
+    Platform(200.f, 180.f, 100.f, 15.f),   // Plateforme plus haute accessible avec un saut combiné
+    Platform(400.f, 140.f, 150.f, 15.f),   // Plateforme haute, “bonus” ou point d’arrivée
+};
 
     SDL_Color grassGreen = {80,160,50,255};
     SDL_Color dirtBrown  = {120,80,40,255};
@@ -171,7 +172,7 @@ int main()
         }
 
         // ---- RENDER ----
-        SDL_SetRenderDrawColor(renderer, 0,0,0,255);
+        SDL_SetRenderDrawColor(renderer, 135, 206, 235, 255); // bleu ciel
         SDL_RenderClear(renderer);
 
         if (state == GameState::MENU)

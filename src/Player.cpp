@@ -1,5 +1,5 @@
-#include "Player.h"
-#include "Constants.h"
+#include "Player.hpp"
+#include "Constants.hpp"
 
 void Player::handleInput(const Uint8* keys)
 {

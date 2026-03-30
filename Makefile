@@ -1,30 +1,37 @@
-CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++17
-LDFLAGS = `sdl2-config --libs`
-SDLFLAGS = `sdl2-config --cflags`
+CXX      = g++
+CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -Isrc
+LDFLAGS  = -lSDL2 -lSDL2_ttf   # ← ajout de -lSDL2_ttf
 
-SRC_DIR = src
-OBJ_DIR = obj
-BIN_DIR = bin
+TARGET   = bin/game
+SRC_DIR  = src
+OBJ_DIR  = obj
 
-SRC = $(wildcard $(SRC_DIR)/*.cpp)
-OBJ = $(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
+SRCS     = $(wildcard $(SRC_DIR)/*.cpp)
+OBJS     = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
 
-TARGET = $(BIN_DIR)/game
-
+# ── Cible principale ──────────────────────────────────────────
 all: $(TARGET)
 
-$(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+$(TARGET): $(OBJS) | bin
+	$(CXX) $^ -o $@ $(LDFLAGS)
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	$(CXX) $(CXXFLAGS) $(SDLFLAGS) -c $< -o $@
+# ── Compilation de chaque .cpp → .o ──────────────────────────
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# ── Création des dossiers si absents ─────────────────────────
+bin:
+	mkdir -p bin
+
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
+
+# ── Nettoyage ─────────────────────────────────────────────────
 clean:
-	rm -f $(OBJ_DIR)/*.o
+	rm -f $(OBJ_DIR)/*.o $(TARGET)
 
 fclean: clean
-	rm -f $(TARGET)
+	rm -rf bin obj
 
 re: fclean all
 

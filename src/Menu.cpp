@@ -1,4 +1,4 @@
-#include "Menu.h"
+#include "Menu.hpp"
 #include <SDL2/SDL_ttf.h>
 #include <cstdio>
 

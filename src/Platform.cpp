@@ -1,4 +1,4 @@
-#include "Platform.h"
+#include "Platform.hpp"
 
 Platform::Platform(float x, float y, float w, float h)
 {
