@@ -14,7 +14,6 @@
 - **Dash** avec cooldown pour esquiver ou franchir obstacles
 - **Wall jump** pour escalader certaines parois
 - **Mort rapide** → challenge élevé, le joueur meurt instantanément en cas d’erreur
-- **Checkpoints** → permettent de recommencer depuis un point précis après la mort
 - **HP joueur** → le joueur peut mourir si HP = 0 ???
 - **Attaques joueur** → pour vaincre ennemis ou boss
 
@@ -23,7 +22,6 @@
 - Chaque niveau peut comporter plusieurs “tableaux” ou sous-niveaux
 - **Boss de niveau** : un boss à battre pour terminer le niveau (optionnel pour certains niveaux)
 - **HP boss** → nécessaire pour combat boss
-- **Level up / progression** : possibilité d’améliorer les capacités du joueur (ex. dash plus long, HP max augmenté)
 
 ### Interface / UX
 - Affichage des vies/HP et cooldown du dash

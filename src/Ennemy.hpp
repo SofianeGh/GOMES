@@ -4,6 +4,14 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 
+enum class Pattern
+{
+    NONDEF,
+    MELEE,
+    SHOOTER,
+    BOSS
+};
+
 class Ennemy
 {
     private: 
@@ -13,7 +21,12 @@ class Ennemy
     float vy;
     unsigned char hp;
     bool alive;
-    char attackType;
+    Pattern attackType;
+
+    unsigned char damage;
+    float attackRange;
+    float attackCooldown;
+    float attackTimer;
 
     public:
 
@@ -30,9 +43,9 @@ class Ennemy
     *@param vtY est la vitesse dans l'axe vertical (différent de 0 si l'ennemi bouge)
     *@param HP est la vie 
     *@param Alive booléen qui est vrai tant que hp soit nulle
-    *@param atckType une chaine de caractère qui indique le type d'attaque
+    *@param type  initie le comportement de l'ennemi
     */
-    Ennemy(Rect pos, float vtX, float vtY, unsigned char HP, bool Alive, char atckType);
+    Ennemy(Rect pos, float vtX, float vtY, unsigned char HP, bool Alive, Pattern type);
 
     /**
     *@brief Récupère le rectangle représentant la position de l'ennemi
@@ -47,10 +60,46 @@ class Ennemy
     void takeDamage(unsigned int dmg);
 
     /**
+    *@brief Récupère si l'ennemi est en vie ou pas
+    */
+    bool isAlive() const;
+
+    /**
+    *@brief Permet de récuperer les dégats de l'ennemi
+    */
+    unsigned char getDamage() const;
+
+    /**
+    *@brief Permet de savoir si l'ennemi de mélée touche l'ennemi ou pas
+    *@param playerRect est la position du joueur
+    */
+    bool canMeleeAttack(const Rect& playerRect) const;
+
+    /**
+    *@brief Donne l'hitbox de l'attaque de mélée
+    */
+    Rect getAttackHitbox() const;
+
+    /**
+    *@brief Permet de déclencher le cooldown de la prochaine attaque
+    */
+    void triggerAttack();
+
+    /**
     @brief Dessine l'ennemi sur le tableau
     @param renderer paramètre sdl
     */
-    void draw(SDL_Renderer* renderer);
+    void draw(SDL_Renderer* renderer) const;
 
+    /**
+    *@brief Permet de mettre en place les attaques des ennemis
+    *@param dt le temps
+    */
+    void update(float dt, const Rect& playerRect);
+
+    /**
+    *@brief Permet de débuguer les fonctions
+    */
+    static void testRegression();
 
 };
