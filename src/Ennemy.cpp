@@ -86,8 +86,11 @@ bool Ennemy::canMeleeAttack(const Rect& playerRect) const
     {
         return false;
     }
+   else
+   {
+        return overlaps(getAttackHitbox(), playerRect);
+    }
 
-    return overlaps(getAttackHitbox(), playerRect);
 }
 
 Rect Ennemy::getAttackHitbox() const
@@ -115,8 +118,19 @@ void Ennemy::draw(SDL_Renderer* renderer) const
     SDL_RenderDrawRect(renderer, &body);
 }
 
-void Ennemy::update(float dt, const Rect& playerRect)
+void Ennemy::update(float dt, const Rect& playerRect, const std::vector<Platform>& platforms)
 {
+    if(rect.x < 0.f)
+    {
+        rect.x = 0.f;
+        vx = -vx;
+    }
+    else if(rect.x + rect.w > 800.f)
+    {
+        rect.x = 800.f - rect.w;
+        vx = -vx;
+    }
+
     if(!alive)
     {
         return;
@@ -125,11 +139,6 @@ void Ennemy::update(float dt, const Rect& playerRect)
     if(attackType != Pattern::MELEE)
     {
         return;
-    }
-    else
-    {
-        rect.x += vx * dt;
-        rect.y += vy * dt;
     }
 
     if(attackTimer > 0.f)
@@ -145,6 +154,18 @@ void Ennemy::update(float dt, const Rect& playerRect)
     if(canMeleeAttack(playerRect))
     {
         triggerAttack();
+    }
+
+    //Collison horizontal
+    rect.x += vx * dt;
+    for (const auto& p : platforms)
+    {
+        const Rect& plat = p.getRect();
+
+        if (overlaps(rect, plat))
+        {
+            vx = -vx;
+        }
     }
 
 }

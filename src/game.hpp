@@ -7,6 +7,7 @@
 #include "Player.hpp"
 #include "Platform.hpp"
 #include "Menu.hpp"
+#include "Ennemy.hpp"
 
 /**
  * @enum GameState
@@ -60,6 +61,7 @@ private:
     // ── Objets de jeu ────────────────────────────────────────────────
     std::vector<Platform> platforms;
     Player player;
+    Ennemy e1;
     Menu   menu;
     Menu   pauseMenu;
     Menu   optionsMenu;

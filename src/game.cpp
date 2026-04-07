@@ -36,7 +36,7 @@ Game::Game()
     }
 
     window = SDL_CreateWindow(
-        "Platformer + Dash",
+        "JEUX DE PLATEFORME 2D",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         SCREEN_W, SCREEN_H,
         SDL_WINDOW_SHOWN
@@ -57,6 +57,14 @@ Game::Game()
     Platform(200.f, 180.f, 100.f, 15.f),   // Plateforme plus haute accessible avec un saut combiné
     Platform(400.f, 140.f, 150.f, 15.f),   // Plateforme haute, “bonus” ou point d’arrivée
     };
+
+
+    Rect pos1;
+    pos1.x = 100.f;
+    pos1.y = 100.f;
+    pos1.w = 50.f;
+    pos1.h = 50.f;
+    e1 = Ennemy(pos1,100.f,0.f,2,true,Pattern::MELEE);
 
     // ---- Couleurs ----
     grassGreen = {80,  160, 50,  255};
@@ -144,6 +152,7 @@ void Game::update(const Uint8* keys)
         {
             player.handleInput(keys);
             player.update(DELTA, platforms);
+            e1.update(DELTA, player.getRect(), platforms);
             break;
         }
 
@@ -223,6 +232,7 @@ void Game::render()
                     i == 0 ? grassGreen : floatTop,
                     i == 0 ? dirtBrown  : floatBody);
             player.draw(renderer);
+            e1.draw(renderer);
             break;
         }
 

@@ -70,4 +70,6 @@ public:
      * @param renderer Renderer SDL utilisé pour le dessin
      */
     void draw(SDL_Renderer* renderer) const;
+
+    const Rect& getRect() const;
 };

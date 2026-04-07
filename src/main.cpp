@@ -1,7 +1,7 @@
 #include "game.hpp"
 
 /**
- * @brief début du programme 
+ * @brief Point d'entrée du programme
  */
 int main()
 {

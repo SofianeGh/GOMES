@@ -1,6 +1,11 @@
 #include "Player.hpp"
 #include "Constants.hpp"
 
+const Rect& Player::getRect() const
+{
+    return rect;
+}
+
 void Player::handleInput(const Uint8* keys)
 {
     vx = 0.f;

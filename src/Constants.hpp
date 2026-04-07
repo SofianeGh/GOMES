@@ -8,12 +8,12 @@
 /**
  * @brief Largeur de la fenêtre du jeu
  */
-constexpr int SCREEN_W = 800;
+constexpr int SCREEN_W = 1920;
 
 /**
  * @brief Hauteur de la fenêtre du jeu
  */
-constexpr int SCREEN_H = 500;
+constexpr int SCREEN_H = 1080;
 
 /**
  * @brief Nombre de frames par seconde

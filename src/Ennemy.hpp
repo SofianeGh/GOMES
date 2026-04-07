@@ -3,6 +3,8 @@
 #include "Rectangle.hpp"
 #include <iostream>
 #include <SDL2/SDL.h>
+#include<vector>
+#include "Platform.hpp"
 
 enum class Pattern
 {
@@ -95,7 +97,7 @@ class Ennemy
     *@brief Permet de mettre en place les attaques des ennemis
     *@param dt le temps
     */
-    void update(float dt, const Rect& playerRect);
+    void update(float dt, const Rect& playerRect, const std::vector<Platform>& platforms);
 
     /**
     *@brief Permet de débuguer les fonctions
