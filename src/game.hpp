@@ -1,55 +1,43 @@
 #pragma once
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL.h>   // pour SDL_Scancode uniquement
 #include <vector>
 
+#include "game_sdl.hpp"   // GameState + GameSDL
 #include "Player.hpp"
 #include "Platform.hpp"
 #include "Menu.hpp"
 #include "Ennemy.hpp"
 
 /**
- * @enum GameState
- * @brief États possibles du jeu
- */
-enum class GameState {
-    MENU,
-    PLAYING,
-    PAUSED,
-    OPTIONS,
-    EXIT
-};
-
-/**
  * @class Game
- * @brief Classe principale gérant la boucle de jeu, les états et le rendu
+ * @brief Logique pure du jeu : états, mise à jour, objets.
+ *        Délègue tout ce qui est SDL à GameSDL.
  */
 class Game {
 public:
     /**
-     * @brief Constructeur — initialise SDL, la fenêtre, le renderer et les objets de jeu
+     * @brief Initialise les objets de jeu et démarre SDL via GameSDL.
      */
     Game();
 
     /**
-     * @brief Destructeur — libère toutes les ressources SDL
+     * @brief Libère les ressources via GameSDL.
      */
     ~Game();
 
     /**
-     * @brief Lance la boucle principale du jeu
+     * @brief Lance la boucle principale du jeu.
      */
     void run();
 
 private:
-    // ── SDL ─────────────────────────────────────────────────────────
-    SDL_Window*   window   = nullptr;
-    SDL_Renderer* renderer = nullptr;
+    // ── Couche SDL ───────────────────────────────────────────────────
+    GameSDL sdl;
 
-    // ── État ────────────────────────────────────────────────────────
-    GameState state   = GameState::MENU;
-    bool      running = true;
+    // ── État logique ─────────────────────────────────────────────────
+    GameState state        = GameState::MENU;
+    bool      running      = true;
     bool      enterPressed = false;
 
     // ── Touches configurables ────────────────────────────────────────
@@ -72,21 +60,9 @@ private:
     SDL_Color floatTop;
     SDL_Color floatBody;
 
-    // ── Sous-étapes de la boucle ──────────────────────────────────────
     /**
-     * @brief Traite les événements SDL (fermeture, Échap…)
-     * @param event Événement SDL courant
-     */
-    void handleEvents(const SDL_Event& event);
-
-    /**
-     * @brief Met à jour la logique selon l'état courant
-     * @param keys État courant du clavier
+     * @brief Met à jour la logique selon l'état courant.
+     * @param keys État courant du clavier (SDL)
      */
     void update(const Uint8* keys);
-
-    /**
-     * @brief Dessine la frame courante
-     */
-    void render();
 };
