@@ -93,9 +93,9 @@ void Player::draw(SDL_Renderer* renderer) const
 {
     SDL_Rect body = {(int)rect.x, (int)rect.y, (int)rect.w, (int)rect.h};
     if (isDashing) SDL_SetRenderDrawColor(renderer, 255, 200, 50, 255);
-    else SDL_SetRenderDrawColor(renderer, 130, 130, 220, 255);
+    else SDL_SetRenderDrawColor(renderer, 130, 130, 220, 255);// SERRA remplacer par une texture plus tard
 
-    SDL_RenderFillRect(renderer, &body);
-    SDL_SetRenderDrawColor(renderer, 30, 60, 140, 255);
-    SDL_RenderDrawRect(renderer, &body);
+    SDL_RenderFillRect(renderer, &body);// SERRA remplacer par une texture plus tard
+    SDL_SetRenderDrawColor(renderer, 30, 60, 140, 255); // SERRA remplacer par une texture plus tard
+    SDL_RenderDrawRect(renderer, &body);// SERRA remplacer par une texture plus tard
 }

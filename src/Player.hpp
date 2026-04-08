@@ -50,7 +50,12 @@ private:
      * @brief Direction du dash (1 = droite, -1 = gauche)
      */
     int dashDir = 1;
-
+    /**
+     * @brief Santé du joueur
+     */
+    int health = 3;
+    
+    
 public:
     /**
      * @brief Traite les entrées clavier pour contrôler le joueur
