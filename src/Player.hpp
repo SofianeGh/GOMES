@@ -4,77 +4,44 @@
 #include "Rectangle.hpp"
 #include "Platform.hpp"
 
-/**
- * @struct Player
- * @brief Représente le joueur et ses états dans le jeu
- */
 struct Player {
 private:
-    /**
-     * @brief Rectangle représentant la position et la taille du joueur
-     */
-    Rect rect = {100.f, 200.f, 36.f, 48.f};
+    Rect  rect     = {100.f, 200.f, 36.f, 48.f};
+    float vx       = 0.f;
+    float vy       = 0.f;
+    bool  onGround = false;
+
+    // ── WALL JUMP ────────────
+    bool  onWall           = false;
+    int   wallDir          = 0;
+    int   lastWallJumpDir  = 0;
 
     /**
-     * @brief Vitesse du joueur sur l'axe horizontal
+     * @brief Durée pendant laquelle le contrôle horizontal est verrouillé
+     *        après un wall-jump (empêche handleInput d'écraser vx).
      */
-    float vx = 0.f;
+    float wallJumpTimer = 0.f;
 
-    /**
-     * @brief Vitesse du joueur sur l'axe vertical
-     */
-    float vy = 0.f;
-
-    /**
-     * @brief Booléen indiquant si le joueur est au sol
-     */
-    bool onGround = false;
+    // ── HP / IFRAMES ─────────
+    int   hp      = 3;
+    float iframes = 0.f;
 
     // ── DASH ────────────────
-    /**
-     * @brief Booléen indiquant si le joueur est en train de dasher
-     */
-    bool isDashing = false;
-
-    /**
-     * @brief Timer restant pour la durée du dash
-     */
-    float dashTimer = 0.f;
-
-    /**
-     * @brief Timer restant avant de pouvoir redasher
-     */
+    bool  isDashing    = false;
+    float dashTimer    = 0.f;
     float dashCooldown = 0.f;
+    int   dashDir      = 1;
 
-    /**
-     * @brief Direction du dash (1 = droite, -1 = gauche)
-     */
-    int dashDir = 1;
-    /**
-     * @brief Santé du joueur
-     */
-    int health = 3;
-    
-    
+    bool jumpHeld = false;
+
 public:
-    /**
-     * @brief Traite les entrées clavier pour contrôler le joueur
-     * @param keys Tableau des touches actuellement pressées (SDL)
-     */
     void handleInput(const Uint8* keys);
-
-    /**
-     * @brief Met à jour l'état du joueur (position, vitesse, collisions)
-     * @param dt Delta time depuis la dernière mise à jour
-     * @param platforms Liste des plateformes pour gérer les collisions
-     */
     void update(float dt, const std::vector<Platform>& platforms);
-
-    /**
-     * @brief Dessine le joueur à l'écran
-     * @param renderer Renderer SDL utilisé pour le dessin
-     */
     void draw(SDL_Renderer* renderer) const;
+
+    void takeDamage(int dmg);
+    int  getHP()        const { return hp; }
+    bool isInvincible() const { return iframes > 0.f; }
 
     const Rect& getRect() const;
 };

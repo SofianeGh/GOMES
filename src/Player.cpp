@@ -1,36 +1,89 @@
 #include "Player.hpp"
 #include "Constants.hpp"
 
-const Rect& Player::getRect() const
+static constexpr float IFRAMES_DURATION  = 1.5f;
+static constexpr float WALL_JUMP_VX      = 280.f;
+static constexpr float WALL_JUMP_VY      = -540.f;
+static constexpr float WALL_SLIDE_SPEED  =  80.f;
+
+/**
+ * Pendant WALL_JUMP_LOCK secondes après un wall-jump,
+ * handleInput ne touche pas à vx — le joueur est "éjecté" du mur
+ * sans que l'input horizontal annule immédiatement la poussée.
+ */
+static constexpr float WALL_JUMP_LOCK    =  0.18f;
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+const Rect& Player::getRect() const { return rect; }
+
+void Player::takeDamage(int dmg)
 {
-    return rect;
+    if (iframes > 0.f) return;
+    hp -= dmg;
+    iframes = IFRAMES_DURATION;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 void Player::handleInput(const Uint8* keys)
 {
-    vx = 0.f;
+    // Pendant le lock post-wall-jump on ne touche PAS à vx
+    if (wallJumpTimer <= 0.f)
+    {
+        vx = 0.f;
+        if (!isDashing)
+        {
+            if (keys[SDL_SCANCODE_LEFT]  || keys[SDL_SCANCODE_A]) { vx = -MOVE_SPEED; dashDir = -1; }
+            if (keys[SDL_SCANCODE_RIGHT] || keys[SDL_SCANCODE_D]) { vx =  MOVE_SPEED; dashDir =  1; }
+        }
+    }
+
     if (!isDashing)
     {
-        if (keys[SDL_SCANCODE_LEFT] || keys[SDL_SCANCODE_A]) { vx = -MOVE_SPEED; dashDir = -1; }
-        if (keys[SDL_SCANCODE_RIGHT] || keys[SDL_SCANCODE_D]) { vx = MOVE_SPEED; dashDir = 1; }
+        bool jumpKey = keys[SDL_SCANCODE_SPACE]
+                    || keys[SDL_SCANCODE_UP]
+                    || keys[SDL_SCANCODE_W];
 
-        if ((keys[SDL_SCANCODE_SPACE] || keys[SDL_SCANCODE_UP] || keys[SDL_SCANCODE_W]) && onGround)
+        if (jumpKey && !jumpHeld)
         {
-            vy = JUMP_FORCE;
-            onGround = false;
+            if (onGround)
+            {
+                vy = JUMP_FORCE;
+                onGround = false;
+                lastWallJumpDir = 0;
+                wallJumpTimer   = 0.f;
+            }
+            else if (onWall && wallDir != lastWallJumpDir)
+            {
+                vy = WALL_JUMP_VY;
+                vx = -wallDir * WALL_JUMP_VX;   // poussée loin du mur
+                lastWallJumpDir = wallDir;
+                wallJumpTimer   = WALL_JUMP_LOCK; // verrouille vx pendant ce délai
+                onWall = false;
+            }
         }
+        jumpHeld = jumpKey;
 
         if (keys[SDL_SCANCODE_X] && dashCooldown <= 0.f)
         {
-            isDashing = true;
-            dashTimer = DASH_DURATION;
+            isDashing    = true;
+            dashTimer    = DASH_DURATION;
             dashCooldown = DASH_COOLDOWN;
+            wallJumpTimer = 0.f;   // dash annule le lock
         }
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+
 void Player::update(float dt, const std::vector<Platform>& platforms)
 {
+    // ── Timers ────────────────────────────────────────────────────────
+    if (iframes      > 0.f) { iframes      -= dt; if (iframes      < 0.f) iframes      = 0.f; }
+    if (wallJumpTimer > 0.f) { wallJumpTimer -= dt; if (wallJumpTimer < 0.f) wallJumpTimer = 0.f; }
+
+    // ── Dash ─────────────────────────────────────────────────────────
     if (isDashing)
     {
         vx = dashDir * DASH_SPEED;
@@ -46,56 +99,76 @@ void Player::update(float dt, const std::vector<Platform>& platforms)
 
     if (dashCooldown > 0.f) dashCooldown -= dt;
 
-    // Horizontal collision
+    // ── Collision horizontale ─────────────────────────────────────────
+    onWall  = false;
+    wallDir = 0;
     rect.x += vx * dt;
+
     for (const auto& p : platforms)
     {
         const Rect& plat = p.getRect();
-
         if (overlaps(rect, plat))
         {
-            rect.x = vx > 0 ? plat.x - rect.w : plat.x + plat.w;
+            if (vx > 0) { rect.x = plat.x - rect.w; if (!onGround) { onWall = true; wallDir =  1; } }
+            else        { rect.x = plat.x + plat.w; if (!onGround) { onWall = true; wallDir = -1; } }
             vx = 0.f;
+            wallJumpTimer = 0.f;   // on touche un mur → fin du lock
         }
     }
 
-    // Vertical collision
+    // ── Wall slide ────────────────────────────────────────────────────
+    if (onWall && vy > WALL_SLIDE_SPEED)
+        vy = WALL_SLIDE_SPEED;
+
+    // ── Collision verticale ───────────────────────────────────────────
     onGround = false;
-    rect.y += vy * dt;
+    rect.y  += vy * dt;
+
     for (const auto& p : platforms)
     {
         const Rect& plat = p.getRect();
-
         if (overlaps(rect, plat))
         {
             if (vy > 0)
             {
-                rect.y = plat.y - rect.h;
+                rect.y   = plat.y - rect.h;
                 onGround = true;
+                onWall   = false;
+                lastWallJumpDir = 0;
+                wallJumpTimer   = 0.f;
             }
-            else
-            {
-                rect.y = plat.y + plat.h;
-            }
+            else { rect.y = plat.y + plat.h; }
             vy = 0.f;
         }
     }
 
-    // Screen limits
-    if (rect.x < 0) rect.x = 0;
+    // ── Limites écran ─────────────────────────────────────────────────
+    if (rect.x < 0)                 rect.x = 0;
     if (rect.x + rect.w > SCREEN_W) rect.x = SCREEN_W - rect.w;
 
-    // Respawn
+    // ── Respawn ───────────────────────────────────────────────────────
     if (rect.y > SCREEN_H + 100) { rect.x = 100.f; rect.y = 200.f; vy = 0.f; }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+
 void Player::draw(SDL_Renderer* renderer) const
 {
-    SDL_Rect body = {(int)rect.x, (int)rect.y, (int)rect.w, (int)rect.h};
-    if (isDashing) SDL_SetRenderDrawColor(renderer, 255, 200, 50, 255);
-    else SDL_SetRenderDrawColor(renderer, 130, 130, 220, 255);// SERRA remplacer par une texture plus tard
+    if (iframes > 0.f && static_cast<int>(iframes * 10.f) % 2 == 0) return;
 
-    SDL_RenderFillRect(renderer, &body);// SERRA remplacer par une texture plus tard
-    SDL_SetRenderDrawColor(renderer, 30, 60, 140, 255); // SERRA remplacer par une texture plus tard
-    SDL_RenderDrawRect(renderer, &body);// SERRA remplacer par une texture plus tard
+    SDL_Rect body = {(int)rect.x, (int)rect.y, (int)rect.w, (int)rect.h};
+
+    if (isDashing) SDL_SetRenderDrawColor(renderer, 255, 200,  50, 255);
+    else           SDL_SetRenderDrawColor(renderer, 130, 130, 220, 255);
+    SDL_RenderFillRect(renderer, &body);
+
+    SDL_SetRenderDrawColor(renderer, 30, 60, 140, 255);
+    SDL_RenderDrawRect(renderer, &body);
+
+    if (onWall)
+    {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 220);
+        int wx = (wallDir == 1) ? (int)(rect.x + rect.w) : (int)rect.x;
+        SDL_RenderDrawLine(renderer, wx, (int)rect.y + 4, wx, (int)(rect.y + rect.h) - 4);
+    }
 }

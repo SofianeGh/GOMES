@@ -15,18 +15,49 @@ Game::Game()
     }
 
     // ---- Plateformes ----
-    platforms = {
-        Platform(0.f,   460.f, 800.f, 40.f),
-        Platform(100.f, 380.f, 150.f, 15.f),
-        Platform(300.f, 320.f, 120.f, 15.f),
-        Platform(480.f, 270.f, 100.f, 15.f),
-        Platform(620.f, 220.f,  80.f, 15.f),
-        Platform(200.f, 180.f, 100.f, 15.f),
-        Platform(400.f, 140.f, 150.f, 15.f),
-    };
+platforms = {
+
+    // Sol
+    Platform(0.f, 1040.f, 1920.f, 40.f),
+
+
+    Platform(100.f, 960.f, 180.f, 20.f),
+    Platform(320.f, 940.f, 180.f, 20.f),
+    Platform(560.f, 960.f, 180.f, 20.f),
+    Platform(800.f, 940.f, 180.f, 20.f),
+    Platform(1040.f, 960.f, 180.f, 20.f),
+    Platform(1280.f, 940.f, 180.f, 20.f),
+    Platform(1520.f, 960.f, 180.f, 20.f),
+    Platform(200.f, 860.f, 160.f, 20.f),
+    Platform(440.f, 840.f, 160.f, 20.f),
+    Platform(680.f, 860.f, 160.f, 20.f),
+    Platform(920.f, 840.f, 160.f, 20.f),
+    Platform(1160.f, 860.f, 160.f, 20.f),
+    Platform(1400.f, 840.f, 160.f, 20.f),
+    Platform(120.f, 760.f, 160.f, 20.f),
+    Platform(360.f, 740.f, 160.f, 20.f),
+    Platform(600.f, 760.f, 160.f, 20.f),
+    Platform(840.f, 740.f, 160.f, 20.f),
+    Platform(1080.f, 760.f, 160.f, 20.f),
+    Platform(1320.f, 740.f, 160.f, 20.f),
+    Platform(1560.f, 760.f, 160.f, 20.f),
+    Platform(250.f, 660.f, 180.f, 20.f),
+    Platform(520.f, 640.f, 180.f, 20.f),
+    Platform(790.f, 660.f, 180.f, 20.f),
+    Platform(1060.f, 640.f, 180.f, 20.f),
+    Platform(1330.f, 660.f, 180.f, 20.f),
+    Platform(400.f, 560.f, 200.f, 20.f),
+    Platform(900.f, 540.f, 200.f, 20.f),
+    Platform(1400.f, 560.f, 200.f, 20.f),
+    Platform(850.f, 450.f, 220.f, 20.f),
+
+    // Murs
+    Platform(0.f, 0.f, 20.f, 1080.f),
+    Platform(1900.f, 0.f, 20.f, 1080.f)
+};
 
     // ---- Ennemi ----
-    Rect pos1 = {100.f, 100.f, 50.f, 50.f};
+    Rect pos1 = {100.f, 400.f, 50.f, 50.f};
     e1 = Ennemy(pos1, 100.f, 0.f, 2, true, Pattern::MELEE);
 
     // ---- Couleurs ----
@@ -51,21 +82,18 @@ void Game::run()
 
     while (running && state != GameState::EXIT)
     {
-        // ---- Événements (SDL) ----
         sdl.pollEvents(state, running);
 
-        // ---- Mise à jour (logique pure) ----
         const Uint8* keys = SDL_GetKeyboardState(nullptr);
         update(keys);
 
-        // ---- Rendu (SDL) ----
         sdl.render(state, platforms, player, e1,
                    menu, pauseMenu, optionsMenu,
                    grassGreen, dirtBrown, floatTop, floatBody);
     }
 }
 
-// ── Mise à jour (logique pure, sans SDL sauf lecture clavier) ─────────────────
+// ── Mise à jour ───────────────────────────────────────────────────────────────
 
 void Game::update(const Uint8* keys)
 {
@@ -91,6 +119,20 @@ void Game::update(const Uint8* keys)
             player.handleInput(keys);
             player.update(DELTA, platforms);
             e1.update(DELTA, player.getRect(), platforms);
+
+            // ── Collision player ↔ ennemi → dégâts + iframes ──────────
+            if (e1.isAlive() && overlaps(player.getRect(), e1.getRect()))
+            {
+                player.takeDamage(static_cast<int>(e1.getDamage()));
+            }
+
+            // ── Mort du joueur ────────────────────────────────────────
+            if (player.getHP() <= 0)
+            {
+                printf("Game Over !\n");
+                state = GameState::MENU;   // ou GameState::DEAD si tu l'ajoutes
+            }
+
             break;
         }
 
