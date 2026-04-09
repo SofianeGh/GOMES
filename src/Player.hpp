@@ -20,7 +20,12 @@ private:
      * @brief Durée pendant laquelle le contrôle horizontal est verrouillé
      *        après un wall-jump (empêche handleInput d'écraser vx).
      */
-    float wallJumpTimer = 0.f;
+    float wallJumpTimer    = 0.f;
+
+    /**
+     * @brief Cooldown avant de pouvoir re-wall-jumper (0.1 s).
+     */
+    float wallJumpCooldown = 0.f;
 
     // ── HP / IFRAMES ─────────
     int   hp      = 3;
@@ -30,9 +35,18 @@ private:
     bool  isDashing    = false;
     float dashTimer    = 0.f;
     float dashCooldown = 0.f;
-    int   dashDir      = 1;
+    int   dashDir      = 1;   // aussi utilisé comme direction "face"
 
     bool jumpHeld = false;
+
+    // ── ATTAQUE ──────────────
+    bool  isAttackActive  = false;
+    float attackTimer     = 0.f;
+    float attackCooldown  = 0.f;
+
+    static constexpr float ATTACK_DURATION  = 0.2f;
+    static constexpr float ATTACK_COOLDOWN  = 0.4f;
+    static constexpr float ATTACK_RANGE     = 60.f; // pixels devant le joueur
 
 public:
     void handleInput(const Uint8* keys);
@@ -44,4 +58,14 @@ public:
     bool isInvincible() const { return iframes > 0.f; }
 
     const Rect& getRect() const;
+
+    /**
+     * @brief Retourne l'hitbox de l'attaque (valide uniquement si isAttacking()).
+     */
+    Rect getAttackHitbox() const;
+
+    /**
+     * @brief Indique si le joueur est en train d'attaquer ce frame.
+     */
+    bool isAttacking() const { return isAttackActive; }
 };

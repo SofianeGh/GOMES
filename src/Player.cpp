@@ -5,13 +5,8 @@ static constexpr float IFRAMES_DURATION  = 1.5f;
 static constexpr float WALL_JUMP_VX      = 280.f;
 static constexpr float WALL_JUMP_VY      = -540.f;
 static constexpr float WALL_SLIDE_SPEED  =  80.f;
-
-/**
- * Pendant WALL_JUMP_LOCK secondes après un wall-jump,
- * handleInput ne touche pas à vx — le joueur est "éjecté" du mur
- * sans que l'input horizontal annule immédiatement la poussée.
- */
 static constexpr float WALL_JUMP_LOCK    =  0.18f;
+static constexpr float WALL_JUMP_CD      =  0.1f;  // cooldown wall jump
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -22,6 +17,20 @@ void Player::takeDamage(int dmg)
     if (iframes > 0.f) return;
     hp -= dmg;
     iframes = IFRAMES_DURATION;
+}
+
+Rect Player::getAttackHitbox() const
+{
+    // Hitbox placée devant le joueur selon la direction (dashDir)
+    Rect h;
+    h.w = ATTACK_RANGE;
+    h.h = rect.h;
+    h.y = rect.y;
+    if (dashDir >= 0)
+        h.x = rect.x + rect.w;          // devant à droite
+    else
+        h.x = rect.x - ATTACK_RANGE;    // devant à gauche
+    return h;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -54,23 +63,34 @@ void Player::handleInput(const Uint8* keys)
                 lastWallJumpDir = 0;
                 wallJumpTimer   = 0.f;
             }
-            else if (onWall && wallDir != lastWallJumpDir)
+            // Wall jump : autorisé seulement si le cooldown est écoulé
+            else if (onWall && wallDir != lastWallJumpDir && wallJumpCooldown <= 0.f)
             {
                 vy = WALL_JUMP_VY;
-                vx = -wallDir * WALL_JUMP_VX;   // poussée loin du mur
+                vx = -wallDir * WALL_JUMP_VX;
                 lastWallJumpDir = wallDir;
-                wallJumpTimer   = WALL_JUMP_LOCK; // verrouille vx pendant ce délai
+                wallJumpTimer   = WALL_JUMP_LOCK;
+                wallJumpCooldown = WALL_JUMP_CD; // ← nouveau cooldown 0.1 s
                 onWall = false;
             }
         }
         jumpHeld = jumpKey;
 
+        // ── Dash ─────────────────────────────────────────────────────
         if (keys[SDL_SCANCODE_X] && dashCooldown <= 0.f)
         {
             isDashing    = true;
             dashTimer    = DASH_DURATION;
             dashCooldown = DASH_COOLDOWN;
-            wallJumpTimer = 0.f;   // dash annule le lock
+            wallJumpTimer = 0.f;
+        }
+
+        // ── Attaque (touche Z) ────────────────────────────────────────
+        if (keys[SDL_SCANCODE_Z] && attackCooldown <= 0.f && !isAttackActive)
+        {
+            isAttackActive = true;
+            attackTimer    = ATTACK_DURATION;
+            attackCooldown = ATTACK_COOLDOWN;
         }
     }
 }
@@ -80,8 +100,18 @@ void Player::handleInput(const Uint8* keys)
 void Player::update(float dt, const std::vector<Platform>& platforms)
 {
     // ── Timers ────────────────────────────────────────────────────────
-    if (iframes      > 0.f) { iframes      -= dt; if (iframes      < 0.f) iframes      = 0.f; }
-    if (wallJumpTimer > 0.f) { wallJumpTimer -= dt; if (wallJumpTimer < 0.f) wallJumpTimer = 0.f; }
+    if (iframes        > 0.f) { iframes        -= dt; if (iframes        < 0.f) iframes        = 0.f; }
+    if (wallJumpTimer  > 0.f) { wallJumpTimer  -= dt; if (wallJumpTimer  < 0.f) wallJumpTimer  = 0.f; }
+    if (wallJumpCooldown > 0.f) { wallJumpCooldown -= dt; if (wallJumpCooldown < 0.f) wallJumpCooldown = 0.f; }
+    if (attackCooldown > 0.f) { attackCooldown -= dt; if (attackCooldown < 0.f) attackCooldown = 0.f; }
+
+    // ── Timer attaque ─────────────────────────────────────────────────
+    if (isAttackActive)
+    {
+        attackTimer -= dt;
+        if (attackTimer <= 0.f)
+            isAttackActive = false;
+    }
 
     // ── Dash ─────────────────────────────────────────────────────────
     if (isDashing)
@@ -112,7 +142,7 @@ void Player::update(float dt, const std::vector<Platform>& platforms)
             if (vx > 0) { rect.x = plat.x - rect.w; if (!onGround) { onWall = true; wallDir =  1; } }
             else        { rect.x = plat.x + plat.w; if (!onGround) { onWall = true; wallDir = -1; } }
             vx = 0.f;
-            wallJumpTimer = 0.f;   // on touche un mur → fin du lock
+            wallJumpTimer = 0.f;
         }
     }
 
@@ -164,6 +194,15 @@ void Player::draw(SDL_Renderer* renderer) const
 
     SDL_SetRenderDrawColor(renderer, 30, 60, 140, 255);
     SDL_RenderDrawRect(renderer, &body);
+
+    // ── Visualisation de l'attaque ────────────────────────────────────
+    if (isAttackActive)
+    {
+        Rect h = getAttackHitbox();
+        SDL_Rect slash = {(int)h.x, (int)h.y, (int)h.w, (int)h.h};
+        SDL_SetRenderDrawColor(renderer, 255, 255, 80, 200);
+        SDL_RenderFillRect(renderer, &slash);
+    }
 
     if (onWall)
     {

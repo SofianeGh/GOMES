@@ -15,24 +15,24 @@ Game::Game()
     }
 
     // ---- Plateformes ----
-platforms = {
+    platforms = {
+        Platform(0.f, 1040.f, 1920.f, 40.f),
 
-    // Sol
-    Platform(0.f, 1040.f, 1920.f, 40.f),
+        Platform(100.f,  960.f, 180.f, 20.f),
+        Platform(320.f,  940.f, 180.f, 20.f),
+        Platform(560.f,  960.f, 180.f, 20.f),
+        Platform(800.f,  940.f, 180.f, 20.f),
+        Platform(1040.f, 960.f, 180.f, 20.f),
+        Platform(1280.f, 940.f, 180.f, 20.f),
+        Platform(1520.f, 960.f, 180.f, 20.f),
 
-
-    Platform(100.f, 960.f, 180.f, 20.f),
-    Platform(320.f, 940.f, 180.f, 20.f),
-    Platform(560.f, 960.f, 180.f, 20.f),
-    Platform(800.f, 940.f, 180.f, 20.f),
-    Platform(1040.f, 960.f, 180.f, 20.f),
-    Platform(1280.f, 940.f, 180.f, 20.f),
-    Platform(1520.f, 960.f, 180.f, 20.f),
-
-    // Murs
-    Platform(0.f, 0.f, 20.f, 1080.f),
-    Platform(1900.f, 0.f, 20.f, 1080.f)
-};
+        Platform(0.f,    0.f,  20.f, 1080.f),
+        Platform(1900.f, 0.f,  20.f, 1080.f),
+        // ---- Plateformes wall jump face à face ----
+Platform(800.f, 450.f, 20.f, 400.f),   // mur gauche
+Platform(900.f, 450.f, 20.f, 400.f),  // mur droit
+        
+    };
 
     // ---- Ennemi ----
     Rect pos1 = {100.f, 800.f, 50.f, 50.f};
@@ -98,17 +98,26 @@ void Game::update(const Uint8* keys)
             player.update(DELTA, platforms);
             e1.update(DELTA, player.getRect(), platforms);
 
-            //  Collision player  ennemi  dégâts  iframes 
+            // ── Attaque joueur → ennemi ───────────────────────────────
+            if (player.isAttacking() && e1.isAlive()
+                && overlaps(player.getAttackHitbox(), e1.getRect()))
+            {
+                e1.takeDamage(1);
+                if (!e1.isAlive())
+                    printf("Ennemi éliminé !\n");
+            }
+
+            // ── Collision ennemi → joueur (dégâts) ───────────────────
             if (e1.isAlive() && overlaps(player.getRect(), e1.getRect()))
             {
                 player.takeDamage(static_cast<int>(e1.getDamage()));
             }
 
-            // Mort du joueur 
+            // ── Mort du joueur ────────────────────────────────────────
             if (player.getHP() <= 0)
             {
                 printf("Game Over !\n");
-                state = GameState::MENU;   
+                state = GameState::MENU;
             }
 
             break;
