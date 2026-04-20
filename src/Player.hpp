@@ -1,9 +1,22 @@
 #pragma once
 #include <vector>
-#include <SDL2/SDL.h>
 #include "Rectangle.hpp"
 #include "Platform.hpp"
 
+// ─────────────────────────────────────────────────────────────────────────────
+/// États d'animation (exposés pour le renderer SDL)
+// ─────────────────────────────────────────────────────────────────────────────
+enum class AnimState {
+    IDLE,
+    RUN,
+    JUMP,
+    FALL,
+    WALL_SLIDE,
+    DASH,
+    ATTACK
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 struct Player {
 private:
     Rect  rect     = {100.f, 200.f, 36.f, 48.f};
@@ -11,14 +24,14 @@ private:
     float vy       = 0.f;
     bool  onGround = false;
 
-    // ── WALL JUMP ────────────
+    // ── WALL JUMP ────────────────────────────────────────────────
     bool  onWall           = false;
     int   wallDir          = 0;
     int   lastWallJumpDir  = 0;
 
     /**
      * @brief Durée pendant laquelle le contrôle horizontal est verrouillé
-     *        après un wall-jump (empêche handleInput d'écraser vx).
+     *        après un wall-jump.
      */
     float wallJumpTimer    = 0.f;
 
@@ -27,45 +40,59 @@ private:
      */
     float wallJumpCooldown = 0.f;
 
-    // ── HP / IFRAMES ─────────
+    // ── HP / IFRAMES ─────────────────────────────────────────────
     int   hp      = 3;
     float iframes = 0.f;
 
-    // ── DASH ────────────────
-    bool  isDashing    = false;
-    float dashTimer    = 0.f;
-    float dashCooldown = 0.f;
-    int   dashDir      = 1;   // aussi utilisé comme direction "face"
+    // ── DASH ─────────────────────────────────────────────────────
+    bool  isDashingFlag = false;
+    float dashTimer     = 0.f;
+    float dashCooldown  = 0.f;
+    int   dashDir       = 1;   // direction "face" : +1 droite, -1 gauche
 
     bool jumpHeld = false;
 
-    // ── ATTAQUE ──────────────
-    bool  isAttackActive  = false;
-    float attackTimer     = 0.f;
-    float attackCooldown  = 0.f;
+    // ── ATTAQUE ──────────────────────────────────────────────────
+    bool  isAttackActive = false;
+    float attackTimer    = 0.f;
+    float attackCooldown = 0.f;
 
-    static constexpr float ATTACK_DURATION  = 0.2f;
-    static constexpr float ATTACK_COOLDOWN  = 0.4f;
-    static constexpr float ATTACK_RANGE     = 60.f; // pixels devant le joueur
+    static constexpr float ATTACK_DURATION = 0.25f;
+    static constexpr float ATTACK_COOLDOWN = 0.45f;
+    static constexpr float ATTACK_RANGE    = 65.f;
+
+    // ── ANIMATION ────────────────────────────────────────────────
+    AnimState animState = AnimState::IDLE;
+    float     animTimer = 0.f;
 
 public:
     void handleInput(const Uint8* keys);
     void update(float dt, const std::vector<Platform>& platforms);
-    void draw(SDL_Renderer* renderer) const;
 
     void takeDamage(int dmg);
-    int  getHP()        const { return hp; }
-    bool isInvincible() const { return iframes > 0.f; }
+    int  getHP() const { return hp; }
 
-    const Rect& getRect() const;
+    const Rect& getRect()         const;
+    Rect        getAttackHitbox() const;
+    bool        isAttacking()     const { return isAttackActive; }
+    bool        isInvincible()    const { return iframes > 0.f; }
+
+    // ── Getters pour le renderer (player_sdl) ────────────────────
+    AnimState getAnimState()  const { return animState; }
+    float     getAnimTimer()  const { return animTimer; }
+    int       getDashDir()    const { return dashDir; }
+    bool      isDashing()     const { return isDashingFlag; }
+    bool      isOnWall()      const { return onWall; }
+    int       getWallDir()    const { return wallDir; }
+    float     getIframes()    const { return iframes; }
 
     /**
-     * @brief Retourne l'hitbox de l'attaque (valide uniquement si isAttacking()).
+     * @brief Progression de l'attaque dans [0,1].
+     *        0 = début du swing, 1 = fin. Valide si isAttacking().
      */
-    Rect getAttackHitbox() const;
-
-    /**
-     * @brief Indique si le joueur est en train d'attaquer ce frame.
-     */
-    bool isAttacking() const { return isAttackActive; }
+    float getAttackProgress() const
+    {
+        if (!isAttackActive) return 0.f;
+        return 1.f - (attackTimer / ATTACK_DURATION);
+    }
 };

@@ -47,7 +47,7 @@ bool GameSDL::init(int w, int h)
 
 void GameSDL::destroy()
 {
-    if (font)     { TTF_CloseFont(font);         font     = nullptr; }
+    if (font)     { TTF_CloseFont(font);          font     = nullptr; }
     if (renderer) { SDL_DestroyRenderer(renderer); renderer = nullptr; }
     if (window)   { SDL_DestroyWindow(window);    window   = nullptr; }
     TTF_Quit();
@@ -90,7 +90,7 @@ void GameSDL::render(GameState state,
                      SDL_Color grassGreen, SDL_Color dirtBrown,
                      SDL_Color floatTop,   SDL_Color floatBody)
 {
-    SDL_SetRenderDrawColor(renderer, 135, 206, 235, 255); // bleu ciel
+    SDL_SetRenderDrawColor(renderer, 135, 206, 235, 255);
     SDL_RenderClear(renderer);
 
     switch (state)
@@ -107,7 +107,9 @@ void GameSDL::render(GameState state,
                 platforms[i].drawPlatform(renderer,
                     i == 0 ? grassGreen : floatTop,
                     i == 0 ? dirtBrown  : floatBody);
-            player.draw(renderer);
+
+            // Rendu du joueur via player_sdl (aucun SDL dans Player.cpp)
+            drawPlayer(renderer, player);
             e1.draw(renderer);
             break;
         }
@@ -118,13 +120,14 @@ void GameSDL::render(GameState state,
                 platforms[i].drawPlatform(renderer,
                     i == 0 ? grassGreen : floatTop,
                     i == 0 ? dirtBrown  : floatBody);
-            player.draw(renderer);
 
-            // Overlay semi-transparent
+            drawPlayer(renderer, player);
+
             SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 150);
             SDL_Rect overlay = {0, 0, SCREEN_W, SCREEN_H};
             SDL_RenderFillRect(renderer, &overlay);
+            SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 
             pauseMenu.render(renderer);
             break;

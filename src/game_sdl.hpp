@@ -6,10 +6,11 @@
 
 #include "Platform.hpp"
 #include "Player.hpp"
+#include "player_sdl.hpp"
 #include "Ennemy.hpp"
 #include "Menu.hpp"
 
-// ── État du jeu (déplacé ici pour être partagé sans dépendance circulaire) ────
+// ── État du jeu ───────────────────────────────────────────────────────────────
 enum class GameState {
     MENU,
     PLAYING,
@@ -30,21 +31,16 @@ public:
 
     /**
      * @brief Initialise SDL, SDL_ttf, la fenêtre et le renderer.
-     * @param w Largeur de la fenêtre
-     * @param h Hauteur de la fenêtre
-     * @return true si tout s'est bien initialisé, false sinon
      */
     bool init(int w, int h);
 
     /**
-     * @brief Libère toutes les ressources SDL (fenêtre, renderer, police).
+     * @brief Libère toutes les ressources SDL.
      */
     void destroy();
 
     /**
      * @brief Dépile les événements SDL et met à jour l'état du jeu.
-     * @param state  État courant du jeu (modifié si Échap pressé)
-     * @param running Mis à false si l'utilisateur ferme la fenêtre
      */
     void pollEvents(GameState& state, bool& running);
 
