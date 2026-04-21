@@ -223,7 +223,6 @@ static void drawBody(SDL_Renderer* r, const Player& p)
 
     // ─────────────────────────────────────────────────────────────
     // 4. COU + TÊTE
-    // ─────────────────────────────────────────────────────────────
     fillR(r, bx+14, by+15+bob, 8, 5, sR,sG,sB);
 
     fillR(r, bx+8,  by+1+bob, 20,16, sR,sG,sB);
@@ -333,7 +332,6 @@ void drawPlayer(SDL_Renderer* renderer, const Player& player)
     // 2. Épée si attaque en cours
     if (player.isAttacking())
     {
-        // Le handle (poing) est à la base du bras tendu
         int handleX = facingRight ? bx + (int)rect.w - 2 : bx + 2;
         int handleY = by + 22 + bob;
         drawSword(renderer, handleX, handleY,

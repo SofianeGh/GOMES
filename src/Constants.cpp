@@ -1,0 +1,7 @@
+#include "Constants.hpp"
+#include <SDL2/SDL.h>
+SDL_Scancode LEFT_KEY  = SDL_SCANCODE_A;
+SDL_Scancode RIGHT_KEY = SDL_SCANCODE_D;
+SDL_Scancode JUMP_KEY  = SDL_SCANCODE_SPACE;
+SDL_Scancode DASH_KEY  = SDL_SCANCODE_X;
+SDL_Scancode ATTACK_KEY = SDL_SCANCODE_Z;

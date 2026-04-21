@@ -1,5 +1,11 @@
 #pragma once
+#include <SDL2/SDL.h>
 
+extern SDL_Scancode LEFT_KEY;
+extern SDL_Scancode RIGHT_KEY;
+extern SDL_Scancode JUMP_KEY;
+extern SDL_Scancode DASH_KEY;
+extern SDL_Scancode ATTACK_KEY;
 /**
  * @file Constants.h
  * @brief Contient les constantes globales utilisées dans le jeu
