@@ -21,6 +21,7 @@
 | Z | Attaque à l'épée |
 | ÉCHAP | Pause / Reprendre |
 | F11 | Plein écran |
+| F2 | debug : Skip le niveau |
 
 ### Système de niveaux
 - **10 niveaux** à thème donjon, avec difficulté progressive
@@ -76,7 +77,6 @@ Les niveaux sont ordonnés par difficulté croissante. Chaque niveau introduit u
 
 Le joueur entre dans le donjon pour la première fois. Un escalier de 6 plateformes monte vers la droite jusqu'à la porte de sortie en haut. Pas d'ennemis : l'objectif est de se familiariser avec les contrôles (déplacement, saut, dash).
 
-**Compétence apprise :** Saut de base, déplacement
 
 ---
 
@@ -87,7 +87,6 @@ Le joueur entre dans le donjon pour la première fois. Un escalier de 6 platefor
 
 Le chemin reste linéaire, mais deux sentinelles patrouillent sur les premières plateformes. Le joueur doit apprendre à les contourner ou à les éliminer avec le dash et l'attaque.
 
-**Compétence apprise :** Combat basique, timing de l'attaque
 
 ---
 
@@ -98,7 +97,6 @@ Le chemin reste linéaire, mais deux sentinelles patrouillent sur les premières
 
 Le sol n'est plus continu : des pans entiers manquent et exposent un vide mortel. Les plateformes sont étroites (largeur ~100 px). Un chemin bas en zigzag et un chemin haut plus risqué mais plus court offrent deux routes différentes.
 
-**Compétence apprise :** Précision des sauts, lecture du terrain
 
 ---
 
@@ -109,7 +107,6 @@ Le sol n'est plus continu : des pans entiers manquent et exposent un vide mortel
 
 Le niveau s'étend **verticalement** : pas de sol, pas de plafond — il faut monter. Deux paires de murs rapprochés imposent le wall-jump pour progresser. Les ennemis sont postés sur les rebords comme des gardes.
 
-**Compétence apprise :** Wall-jump (obligatoire pour terminer le niveau)
 
 ---
 
@@ -120,7 +117,6 @@ Le niveau s'étend **verticalement** : pas de sol, pas de plafond — il faut mo
 
 Plus de sol du tout. Le joueur saute d'île en île au-dessus du néant. Certaines îles sont plus basses, d'autres plus étroites. Le dash devient indispensable pour franchir les plus grands écarts. Les ennemis patrouillent sur les îles les plus larges.
 
-**Compétence apprise :** Dash en l'air, gestion des hauteurs variables
 
 ---
 
@@ -131,7 +127,6 @@ Plus de sol du tout. Le joueur saute d'île en île au-dessus du néant. Certain
 
 Un plafond bas comprime l'espace. Des colonnes alternées bloquent le passage, forçant le joueur à passer tantôt par le bas, tantôt par le haut. Deux chemins parallèles existent (sol ou plafond), chacun gardé par des ennemis.
 
-**Compétence apprise :** Lecture rapide du terrain, gestion de l'espace restreint
 
 ---
 
@@ -142,7 +137,6 @@ Un plafond bas comprime l'espace. Des colonnes alternées bloquent le passage, f
 
 Aucun chemin tracé : les plateformes sont disposées de manière non linéaire sur tout l'écran. Le sol est fragmenté, les ennemis sont plus résistants (3 PV). Le joueur doit improviser sa route jusqu'à la sortie cachée en haut.
 
-**Compétence apprise :** Improvisation, gestion de plusieurs ennemis simultanés
 
 ---
 
@@ -164,7 +158,6 @@ L'inverse de la Tour des Ombres : il faut **descendre**. Le point de départ est
 
 Le niveau est divisé en **4 chambres interconnectées** (A, B, C, D) séparées par des cloisons. La sortie est cachée au centre-haut de la chambre C. Chaque chambre est gardée. Le joueur doit trouver les ouvertures entre les chambres et éliminer tous les gardiens pour ouvrir la porte.
 
-**Compétence apprise :** Orientation, ordre d'élimination des ennemis
 
 ---
 
@@ -175,7 +168,6 @@ Le niveau est divisé en **4 chambres interconnectées** (A, B, C, D) séparées
 
 La grande arène du Seigneur des Ténèbres. Le boss est posté sur un piédestal central surélevé, flanqué de deux gardes. Des gradins latéraux et des passerelles offrent des positions tactiques. La sortie est au sommet du trône, au centre de l'arène. Battre le boss et ses gardes, puis atteindre le sommet — fin du jeu.
 
-**Compétence apprise :** Tout le kit du joueur, gestion du boss
 
 ---
 
