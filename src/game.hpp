@@ -1,23 +1,26 @@
 #pragma once
 
-#include <SDL2/SDL.h>   // pour SDL_Scancode uniquement
+#include <SDL2/SDL.h>
 #include <vector>
+#include <string>
 
 #include "game_sdl.hpp"   // GameState + GameSDL
 #include "Player.hpp"
 #include "Platform.hpp"
 #include "Menu.hpp"
 #include "Ennemy.hpp"
+#include "Level.hpp"
+#include "Levels.hpp"
 
 /**
  * @class Game
- * @brief Logique pure du jeu : états, mise à jour, objets.
+ * @brief Logique pure du jeu : états, niveaux, mise à jour des objets.
  *        Délègue tout ce qui est SDL à GameSDL.
  */
 class Game {
 public:
     /**
-     * @brief Initialise les objets de jeu et démarre SDL via GameSDL.
+     * @brief Initialise les 10 niveaux, charge le niveau 1 et démarre SDL.
      */
     Game();
 
@@ -40,25 +43,31 @@ private:
     bool      running      = true;
     bool      enterPressed = false;
 
-    // ── Touches configurables ────────────────────────────────────────
-    SDL_Scancode LEFT_KEY  = SDL_SCANCODE_A;
-    SDL_Scancode RIGHT_KEY = SDL_SCANCODE_D;
-    SDL_Scancode JUMP_KEY  = SDL_SCANCODE_SPACE;
-    SDL_Scancode DASH_KEY  = SDL_SCANCODE_X;
+    // ── Système de niveaux ───────────────────────────────────────────
+    std::vector<Level> levels;           ///< Les 10 niveaux (buildLevels())
+    int                currentLevel = 0; ///< Index 0-based du niveau courant
+    float levelCompleteTimer = 0.f;      ///< Durée de la transition entre niveaux
 
-    // ── Objets de jeu ────────────────────────────────────────────────
+    // ── Objets actifs (rechargés à chaque niveau) ─────────────────────
     std::vector<Platform> platforms;
-    Player player;
-    Ennemy e1;
-    Menu   menu;
-    Menu   pauseMenu;
-    Menu   optionsMenu;
+    std::vector<Ennemy>   enemies;
+    Player                player;
 
-    // ── Couleurs des plateformes ──────────────────────────────────────
-    SDL_Color grassGreen;
-    SDL_Color dirtBrown;
-    SDL_Color floatTop;
-    SDL_Color floatBody;
+    // ── Menus ────────────────────────────────────────────────────────
+    Menu menu;
+    Menu pauseMenu;
+    Menu optionsMenu;
+
+    /**
+     * @brief Charge le niveau d'index idx (plateformes + ennemis + spawn).
+     * @param idx Index 0-based dans levels[]
+     */
+    void loadLevel(int idx);
+
+    /**
+     * @brief Passe au niveau suivant ou déclenche WIN si dernier niveau.
+     */
+    void advanceLevel();
 
     /**
      * @brief Met à jour la logique selon l'état courant.

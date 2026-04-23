@@ -34,6 +34,44 @@ Rect Player::getAttackHitbox() const
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  Reset (chargement d'un nouveau niveau)
+// ─────────────────────────────────────────────────────────────────────────────
+
+void Player::reset(float x, float y)
+{
+    rect.x = x;
+    rect.y = y;
+    rect.w = 36.f;
+    rect.h = 48.f;
+
+    vx = 0.f;
+    vy = 0.f;
+
+    onGround        = false;
+    onWall          = false;
+    wallDir         = 0;
+    lastWallJumpDir = 0;
+    wallJumpTimer   = 0.f;
+    wallJumpCooldown= 0.f;
+
+    hp      = 3;
+    iframes = 0.f;
+
+    isDashingFlag = false;
+    dashTimer     = 0.f;
+    dashCooldown  = 0.f;
+    dashDir       = 1;
+    jumpHeld      = false;
+
+    isAttackActive = false;
+    attackTimer    = 0.f;
+    attackCooldown = 0.f;
+
+    animState = AnimState::IDLE;
+    animTimer = 0.f;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  Entrées
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -172,7 +210,7 @@ void Player::update(float dt, const std::vector<Platform>& platforms)
     if (rect.x < 0)                 rect.x = 0;
     if (rect.x + rect.w > SCREEN_W) rect.x = SCREEN_W - rect.w;
 
-    // ── Respawn ───────────────────────────────────────────────────────────
+    // ── Respawn si chute hors écran ───────────────────────────────────────
     if (rect.y > SCREEN_H + 100) { rect.x = 100.f; rect.y = 200.f; vy = 0.f; }
 
     // ── État d'animation ─────────────────────────────────────────────────

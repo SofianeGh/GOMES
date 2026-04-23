@@ -69,6 +69,14 @@ public:
     void handleInput(const Uint8* keys);
     void update(float dt, const std::vector<Platform>& platforms);
 
+    /**
+     * @brief Réinitialise complètement le joueur à une position donnée.
+     *        Appelé à chaque chargement de niveau.
+     * @param x Position X de respawn
+     * @param y Position Y de respawn
+     */
+    void reset(float x, float y);
+
     void takeDamage(int dmg);
     int  getHP() const { return hp; }
 

@@ -1,4 +1,5 @@
 #include "Ennemy.hpp"
+#include "Constants.hpp"  // SCREEN_W
 
 Ennemy::Ennemy()
 {
@@ -120,14 +121,15 @@ void Ennemy::draw(SDL_Renderer* renderer) const
 
 void Ennemy::update(float dt, const Rect& playerRect, const std::vector<Platform>& platforms)
 {
+    // j'ai corriger ta valeur en brut, tu peux la modifier pour faire un mouvement plus rapide ou plus lent
     if(rect.x < 0.f)
     {
         rect.x = 0.f;
         vx = -vx;
     }
-    else if(rect.x + rect.w > 800.f)
+    else if(rect.x + rect.w > (float)SCREEN_W)
     {
-        rect.x = 800.f - rect.w;
+        rect.x = (float)SCREEN_W - rect.w;
         vx = -vx;
     }
 

@@ -1,6 +1,7 @@
 #include "game_sdl.hpp"
 #include "Constants.hpp"
 #include <cstdio>
+#include <string>
 
 // ── Police globale (extern utilisé dans Menu.cpp) ─────────────────────────────
 TTF_Font* font = nullptr;
@@ -66,76 +67,255 @@ void GameSDL::pollEvents(GameState& state, bool& running)
             return;
         }
 
-        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)
+        if (event.type == SDL_KEYDOWN)
         {
-            switch (state) {
-                case GameState::PLAYING: state = GameState::PAUSED;  break;
-                case GameState::PAUSED:  state = GameState::PLAYING; break;
-                case GameState::OPTIONS: state = GameState::PAUSED;  break;
-                default: running = false; break;
+            const SDL_Keycode sym = event.key.keysym.sym;
+
+            // F11 : plein écran
+            if (sym == SDLK_F11) {
+                Uint32 flags = SDL_GetWindowFlags(window);
+                if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
+                    SDL_SetWindowFullscreen(window, 0);
+                else
+                    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+            }
+
+            if (sym == SDLK_ESCAPE)
+            {
+                switch (state) {
+                    case GameState::PLAYING:        state = GameState::PAUSED;  break;
+                    case GameState::PAUSED:         state = GameState::PLAYING; break;
+                    case GameState::OPTIONS:        state = GameState::PAUSED;  break;
+                    case GameState::LEVEL_COMPLETE: state = GameState::MENU;    break;
+                    case GameState::WIN:            state = GameState::MENU;    break;
+                    default: running = false; break;
+                }
             }
         }
     }
 }
 
-// ── Rendu ─────────────────────────────────────────────────────────────────────
+// ── Helpers texte ─────────────────────────────────────────────────────────────
 
-void GameSDL::render(GameState state,
-                     std::vector<Platform>& platforms,
-                     const Player&          player,
-                     const Ennemy&          e1,
-                     Menu&                  menu,
-                     Menu&                  pauseMenu,
-                     Menu&                  optionsMenu,
-                     SDL_Color grassGreen, SDL_Color dirtBrown,
-                     SDL_Color floatTop,   SDL_Color floatBody)
+void GameSDL::renderText(const std::string& text, int x, int y, SDL_Color color)
 {
-    SDL_SetRenderDrawColor(renderer, 135, 206, 235, 255);
+    if (!font || !renderer) return;
+    SDL_Surface* s = TTF_RenderText_Solid(font, text.c_str(), color);
+    if (!s) return;
+    SDL_Texture* t = SDL_CreateTextureFromSurface(renderer, s);
+    SDL_Rect dst   = {x, y, s->w, s->h};
+    SDL_FreeSurface(s);
+    if (!t) return;
+    SDL_RenderCopy(renderer, t, nullptr, &dst);
+    SDL_DestroyTexture(t);
+}
+
+void GameSDL::renderTextCentered(const std::string& text, int y, SDL_Color color)
+{
+    if (!font || !renderer) return;
+    SDL_Surface* s = TTF_RenderText_Solid(font, text.c_str(), color);
+    if (!s) return;
+    SDL_Texture* t = SDL_CreateTextureFromSurface(renderer, s);
+    SDL_Rect dst   = {(SCREEN_W - s->w) / 2, y, s->w, s->h};
+    SDL_FreeSurface(s);
+    if (!t) return;
+    SDL_RenderCopy(renderer, t, nullptr, &dst);
+    SDL_DestroyTexture(t);
+}
+
+// ── HUD ───────────────────────────────────────────────────────────────────────
+
+void GameSDL::drawHUD(const Player& player, int levelIdx, int totalLevels,
+                      const std::string& levelName)
+{
+    // HP : cœurs en rouge / gris
+    const int hp   = player.getHP();
+    const int maxHP = 3;
+    for (int i = 0; i < maxHP; ++i)
+    {
+        SDL_Rect heart = {20 + i * 36, 20, 28, 28};
+        if (i < hp)
+            SDL_SetRenderDrawColor(renderer, 220, 40, 40, 255);
+        else
+            SDL_SetRenderDrawColor(renderer, 80, 80, 80, 255);
+        SDL_RenderFillRect(renderer, &heart);
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_RenderDrawRect(renderer, &heart);
+    }
+
+    // Numéro de niveau
+    std::string lvlStr = "Niveau " + std::to_string(levelIdx + 1)
+                       + " / " + std::to_string(totalLevels)
+                       + "  " + levelName;
+    renderText(lvlStr, 160, 22, {220, 210, 180, 255});
+}
+
+// ── Porte de sortie ───────────────────────────────────────────────────────────
+
+void GameSDL::drawExitDoor(const Rect& zone) const
+{
+    if (!renderer) return;
+    const int x = (int)zone.x;
+    const int y = (int)zone.y;
+    const int w = (int)zone.w;
+    const int h = (int)zone.h;
+
+    // Cadre doré
+    SDL_SetRenderDrawColor(renderer, 200, 160, 30, 255);
+    SDL_Rect outer = {x - 4, y - 4, w + 8, h + 8};
+    SDL_RenderFillRect(renderer, &outer);
+
+    // Porte sombre
+    SDL_SetRenderDrawColor(renderer, 40, 25, 10, 255);
+    SDL_Rect door = {x, y, w, h};
+    SDL_RenderFillRect(renderer, &door);
+
+    // Arche intérieure (effet lumineux)
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(renderer, 255, 230, 80, 80);
+    SDL_Rect glow = {x + 4, y + 4, w - 8, h - 8};
+    SDL_RenderFillRect(renderer, &glow);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+
+    // Poignée
+    SDL_SetRenderDrawColor(renderer, 200, 160, 30, 255);
+    SDL_Rect handle = {x + w/2 - 4, y + h/2 - 6, 8, 12};
+    SDL_RenderFillRect(renderer, &handle);
+}
+
+// ── Overlay semi-transparent ──────────────────────────────────────────────────
+
+static void darkOverlay(SDL_Renderer* r, Uint8 alpha)
+{
+    SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(r, 0, 0, 0, alpha);
+    SDL_Rect full = {0, 0, SCREEN_W, SCREEN_H};
+    SDL_RenderFillRect(r, &full);
+    SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_NONE);
+}
+
+// ── Rendu principal ───────────────────────────────────────────────────────────
+
+void GameSDL::render(GameState                    state,
+                     const std::vector<Platform>& platforms,
+                     const Player&               player,
+                     const std::vector<Ennemy>&  enemies,
+                     Menu&                       menu,
+                     Menu&                       pauseMenu,
+                     Menu&                       optionsMenu,
+                     SDL_Color                   bgColor,
+                     SDL_Color                   platTop,
+                     SDL_Color                   platBody,
+                     const Rect&                 exitZone,
+                     int                         levelIdx,
+                     int                         totalLevels,
+                     const std::string&          levelName,
+                     const std::string&          nextLevelName)
+{
+    // ── Fond ─────────────────────────────────────────────────────────────
+    SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, 255);
     SDL_RenderClear(renderer);
 
     switch (state)
     {
+        // ─────────────────────────────────────────────────────────────────
         case GameState::MENU:
         {
+            // Fond dégradé : rectangle violet sur fond noir
+            SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+            SDL_SetRenderDrawColor(renderer, 30, 0, 60, 180);
+            SDL_Rect grad = {0, 0, SCREEN_W, SCREEN_H};
+            SDL_RenderFillRect(renderer, &grad);
+            SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+
+            renderTextCentered("DUNGEON KNIGHT", 100, {230, 200, 60, 255});
+            renderTextCentered("Un jeu de plateforme 2D", 150, {180, 160, 120, 255});
             menu.render(renderer);
             break;
         }
 
+        // ─────────────────────────────────────────────────────────────────
         case GameState::PLAYING:
         {
-            for (size_t i = 0; i < platforms.size(); ++i)
-                platforms[i].drawPlatform(renderer,
-                    i == 0 ? grassGreen : floatTop,
-                    i == 0 ? dirtBrown  : floatBody);
+            // Plateformes
+            for (const auto& p : platforms)
+                const_cast<Platform&>(p).drawPlatform(renderer, platTop, platBody);
 
-            // Rendu du joueur via player_sdl (aucun SDL dans Player.cpp)
+            // Porte de sortie
+            drawExitDoor(exitZone);
+
+            // Ennemis
+            for (const auto& e : enemies)
+                e.draw(renderer);
+
+            // Joueur
             drawPlayer(renderer, player);
-            e1.draw(renderer);
+
+            // HUD
+            drawHUD(player, levelIdx, totalLevels, levelName);
             break;
         }
 
+        // ─────────────────────────────────────────────────────────────────
         case GameState::PAUSED:
         {
-            for (size_t i = 0; i < platforms.size(); ++i)
-                platforms[i].drawPlatform(renderer,
-                    i == 0 ? grassGreen : floatTop,
-                    i == 0 ? dirtBrown  : floatBody);
-
+            // Décor de fond (comme PLAYING)
+            for (const auto& p : platforms)
+                const_cast<Platform&>(p).drawPlatform(renderer, platTop, platBody);
+            drawExitDoor(exitZone);
+            for (const auto& e : enemies)
+                e.draw(renderer);
             drawPlayer(renderer, player);
+            drawHUD(player, levelIdx, totalLevels, levelName);
 
-            SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 150);
-            SDL_Rect overlay = {0, 0, SCREEN_W, SCREEN_H};
-            SDL_RenderFillRect(renderer, &overlay);
-            SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
-
+            darkOverlay(renderer, 160);
+            renderTextCentered("PAUSE", SCREEN_H/2 - 120, {255, 220, 80, 255});
             pauseMenu.render(renderer);
             break;
         }
 
+        // ─────────────────────────────────────────────────────────────────
         case GameState::OPTIONS:
         {
+            darkOverlay(renderer, 200);
+            renderTextCentered("OPTIONS — TOUCHES", 80, {220, 200, 80, 255});
             optionsMenu.render(renderer);
+            break;
+        }
+
+        // ─────────────────────────────────────────────────────────────────
+        case GameState::LEVEL_COMPLETE:
+        {
+            darkOverlay(renderer, 210);
+
+            renderTextCentered("NIVEAU TERMINE !",
+                               SCREEN_H/2 - 100, {255, 220, 50, 255});
+            renderTextCentered(levelName,
+                               SCREEN_H/2 - 50,  {200, 180, 120, 255});
+
+            if (!nextLevelName.empty()) {
+                std::string next = "Prochain niveau :  " + nextLevelName;
+                renderTextCentered(next, SCREEN_H/2 + 20, {160, 200, 220, 255});
+            }
+            renderTextCentered("Chargement en cours...",
+                               SCREEN_H/2 + 80, {120, 120, 120, 255});
+            break;
+        }
+
+        // ─────────────────────────────────────────────────────────────────
+        case GameState::WIN:
+        {
+            SDL_SetRenderDrawColor(renderer, 5, 3, 10, 255);
+            SDL_RenderClear(renderer);
+
+            renderTextCentered("VICTOIRE !",
+                               SCREEN_H/2 - 120, {255, 220, 50, 255});
+            renderTextCentered("Le Seigneur des Tenebres a ete vaincu.",
+                               SCREEN_H/2 - 60,  {200, 180, 140, 255});
+            renderTextCentered("Le donjon est libere.",
+                               SCREEN_H/2,       {180, 160, 120, 255});
+            renderTextCentered("[ ENTREE ] Retour au menu",
+                               SCREEN_H/2 + 80,  {140, 140, 140, 255});
             break;
         }
 
