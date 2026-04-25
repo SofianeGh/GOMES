@@ -1,16 +1,20 @@
 #include "Ennemy.hpp"
-#include "Constants.hpp"  // SCREEN_W
 
 Ennemy::Ennemy()
 {
-    vx = vy = 0.0;
-    hp = 0;
-    alive = false;
-    attackType = Pattern::NONDEF;
-    damage = 0;
-    attackRange = 0.f;
-    attackCooldown = 0.f;
-    attackTimer = 0.f;
+   rect = {0.f, 0.f , 40.f, 40.f};
+   vx = 80.f;
+   vy = 0.f;
+   speed = vx;
+   damage = 1;
+   attackRange = 20.f;
+   attackCooldown = 1.f;
+   attackTimer = 0.f;
+   attackType = Pattern::NONDEF;
+   jumpCooldown = 0.5f;
+   jumpTimer = 0.f;
+   pathTimer = 0.f;
+   pathCooldown = 0.8f;
 
 }
 
@@ -20,22 +24,34 @@ Ennemy::Ennemy(Rect pos, float vtX, float vtY, unsigned char HP, bool Alive, Pat
     hp = HP;
     alive = Alive;
     attackType = type;
+    OnGround = false;
 
-    if (attackType != Pattern::SHOOTER)
+    if (attackType == Pattern::MELEE)
     {
         vx = vtX;
         vy = vtY;
+        speed = std::fabs(vtX);
+        if(speed < 1.f)
+        {
+            speed = 80.f;
+        }
     }
     else
     {
         vx = 0.f;
         vy = 0.f;
+        speed = 0.f;
     }
 
     damage = 1;
     attackRange = 20.f;
     attackCooldown = 1.f;
     attackTimer = 0.f;
+
+    jumpCooldown = 0.5f;
+    jumpTimer = 0.f;
+    pathTimer = 0.f;
+    pathCooldown = 0.f; 
 }
 
 const Rect& Ennemy::getRect() const
@@ -49,7 +65,7 @@ void Ennemy::takeDamage(unsigned int dmg)
         {
             return;
         }
-
+        
     if (hp <= dmg)
     {
         hp =0;
@@ -110,8 +126,51 @@ void Ennemy::triggerAttack()
     attackTimer = attackCooldown;
 }
 
+bool Ennemy::canShoot()
+{
+    return alive && attackType == Pattern::SHOOTER && attackTimer <= 0.f;
+}
+
+Arrow Ennemy::shootAt(const Rect& playerRect)
+{
+    //Applique le cooldown
+    attackTimer = attackCooldown;
+    
+    //Centre de gravité de l'ennemi
+    float posx = rect.x + rect.w * 0.5f;
+    float posy = rect.y + rect.h * 0.5f;
+
+    //Centre de gravité du joueur
+    float px = playerRect.x + playerRect.w * 0.5f;
+    float py = playerRect.y + playerRect.y * 0.5f;
+
+    //calcul de la direction de la flèche
+    float dx = px - posx;
+    float dy = py - posy;
+
+    float distance = std::sqrt(dx * dx + dy * dy);
+    if(distance == 0.f)
+    {
+        distance = 1.f;
+    }
+
+    dx = dx / distance;
+    dy = dy / distance;
+
+    float vitesse = 300.f;
+
+    Rect arrw = {posx -5.f, posy-5.f, 5.f, 5.f};
+
+    return Arrow(arrw, dx * vitesse, dy * vitesse, damage);
+}
+
 void Ennemy::draw(SDL_Renderer* renderer) const
 {
+    if (!alive)
+    {
+        return;
+    }
+    
     SDL_Rect body = {(int)rect.x, (int)rect.y, (int)rect.w, (int)rect.h};
 
     SDL_RenderFillRect(renderer, &body);
@@ -119,20 +178,10 @@ void Ennemy::draw(SDL_Renderer* renderer) const
     SDL_RenderDrawRect(renderer, &body);
 }
 
-void Ennemy::update(float dt, const Rect& playerRect, const std::vector<Platform>& platforms)
-{
-    // j'ai corriger ta valeur en brut, tu peux la modifier pour faire un mouvement plus rapide ou plus lent
-    if(rect.x < 0.f)
-    {
-        rect.x = 0.f;
-        vx = -vx;
-    }
-    else if(rect.x + rect.w > (float)SCREEN_W)
-    {
-        rect.x = (float)SCREEN_W - rect.w;
-        vx = -vx;
-    }
 
+void Ennemy::update(float dt, const Rect& playerRect, const std::vector<Platform>& platforms, const Graph& graph)
+{
+    
     if(!alive)
     {
         return;
@@ -143,6 +192,7 @@ void Ennemy::update(float dt, const Rect& playerRect, const std::vector<Platform
         return;
     }
 
+    //Permet de décroitre le timer d'attaque une fois que l'ennemi a attaqué
     if(attackTimer > 0.f)
     {
         attackTimer -= dt;
@@ -153,20 +203,107 @@ void Ennemy::update(float dt, const Rect& playerRect, const std::vector<Platform
         }
     }
 
+    //Permet de décroitre le timer de saut une fois que l'ennemi a sauté
+    if(jumpTimer > 0.f)
+    {
+        jumpTimer -= dt;
+        if(jumpTimer < 0.f)
+        {
+            jumpTimer = 0.f;
+        }
+    }
+
+    //Déclanche l'attaque
     if(canMeleeAttack(playerRect))
     {
         triggerAttack();
     }
+    
+    if(pathTimer <=0.f)
+    {
+        int myNode = graph.findClosestNode(rect);
+        int playerNode = graph.findClosestNode(playerRect);
 
-    //Collison horizontal
+        path = graph.findPath(myNode, playerNode);
+        pathTimer = pathCooldown;
+    }
+
+    float targetX = playerRect.x + playerRect.w * 0.5f;
+    bool needJump = false;
+
+    float enemyFeet = rect.y+ rect.h; 
+
+    if(path.size() >= 2)
+    {
+        const Node& next = graph.getNode(path[1]);
+        targetX = next.x;
+
+        if(next.y < enemyFeet -16.f)
+        {
+            needJump = true;
+        }
+    }
+
+    if(targetX > rect.x + rect.w * 0.5f)
+    {
+        vx = speed;
+    }
+    else
+    {
+        vx = -speed;
+    }
+
+    if(needJump && OnGround && jumpTimer <= 0.f)
+    {
+        vy = JUMP_FORCE;
+        OnGround = false;
+        jumpTimer = jumpCooldown;
+    }
+
+    vy += GRAVITY * dt;
+
+    if(vy > MAX_FALL_VEL)
+    {
+        vy = MAX_FALL_VEL;
+    }
+
+    //Collision horizontale
     rect.x += vx * dt;
+
     for (const auto& p : platforms)
     {
         const Rect& plat = p.getRect();
 
         if (overlaps(rect, plat))
         {
-            vx = -vx;
+            if (vx > 0)
+                rect.x = plat.x - rect.w;
+            else
+                rect.x = plat.x + plat.w;
+        }
+    }
+
+    //Collision verticale
+    OnGround = false;
+    rect.y += vy * dt;
+
+    for (const auto& p : platforms)
+    {
+        const Rect& plat = p.getRect();
+
+        if (overlaps(rect, plat))
+        {
+            if (vy > 0)
+            {
+                rect.y = plat.y - rect.h;
+                OnGround = true;
+            }
+            else
+            {
+                rect.y = plat.y + plat.h;
+            }
+
+            vy = 0.f;
         }
     }
 

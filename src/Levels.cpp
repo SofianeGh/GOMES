@@ -67,16 +67,16 @@ std::vector<Level> buildLevels()
         lv.exitZone = {1800.f, 320.f, 80.f, 80.f};
 
         WALL_L(lv); WALL_R(lv); FLOOR(lv);
-        PLAT(lv,  200.f,  890.f, 200.f, 20.f); // garde 1
-        PLAT(lv,  480.f,  890.f, 200.f, 20.f);
+        PLAT(lv,  200.f,  990.f, 200.f, 20.f); // garde 1
+        PLAT(lv,  480.f,  990.f, 200.f, 20.f);
         PLAT(lv,  750.f,  770.f, 200.f, 20.f); // garde 2
         PLAT(lv, 1030.f,  770.f, 200.f, 20.f);
         PLAT(lv, 1300.f,  650.f, 200.f, 20.f);
         PLAT(lv, 1570.f,  530.f, 200.f, 20.f);
         PLAT(lv, 1760.f,  410.f, 120.f, 20.f); // près sortie
 
-        ENEMY(lv, 220.f, 840.f, 50.f, 50.f, 65.f, 2, Pattern::MELEE);
-        ENEMY(lv, 755.f, 720.f, 50.f, 50.f, 65.f, 2, Pattern::MELEE);
+        ENEMY(lv, 220.f, 840.f, 50.f, 50.f, 100.f, 2, Pattern::MELEE);
+        ENEMY(lv, 755.f, 720.f, 50.f, 50.f, 100.f, 2, Pattern::MELEE);
 
         levels.push_back(std::move(lv));
     }

@@ -5,6 +5,9 @@
 #include <SDL2/SDL.h>
 #include<vector>
 #include "Platform.hpp"
+#include "Constants.hpp"
+#include "Graph.hpp"
+#include "Arrow.hpp"
 
 enum class Pattern
 {
@@ -21,6 +24,8 @@ class Ennemy
     Rect rect;
     float vx;
     float vy;
+    float speed;
+
     unsigned char hp;
     bool alive;
     Pattern attackType;
@@ -29,6 +34,14 @@ class Ennemy
     float attackRange;
     float attackCooldown;
     float attackTimer;
+
+    float jumpTimer;
+    float jumpCooldown;
+    bool OnGround;
+
+    std::vector<int> path;
+    float pathTimer;
+    float pathCooldown;
 
     public:
 
@@ -86,6 +99,17 @@ class Ennemy
     *@brief Permet de déclencher le cooldown de la prochaine attaque
     */
     void triggerAttack();
+    
+    /**
+    @brief Renvoi si l'ennemi peut tirer
+    */
+    bool canShoot();
+
+    /**
+    @brief Renvoi la flèche guidé par la position du joueur et de l'ennemi
+    @param playerRect la position du joueur 
+    */
+    Arrow shootAt(const Rect& playerRect);
 
     /**
     @brief Dessine l'ennemi sur le tableau
@@ -94,14 +118,13 @@ class Ennemy
     void draw(SDL_Renderer* renderer) const;
 
     /**
-    *@brief Permet de mettre en place les attaques des ennemis
-    *@param dt le temps
+    @brief Permet de mettre en place les actions des ennemis
+    @param dt le temps
+    @param platforms les plateformes du niveau
+    @param graph le graphique du level
     */
-    void update(float dt, const Rect& playerRect, const std::vector<Platform>& platforms);
+    void update(float dt, const Rect& playerRect, const std::vector<Platform>& platforms, const Graph& graph);
 
-    /**
-    *@brief Permet de débuguer les fonctions
-    */
-    static void testRegression();
+
 
 };

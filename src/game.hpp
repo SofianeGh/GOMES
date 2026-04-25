@@ -11,7 +11,8 @@
 #include "Ennemy.hpp"
 #include "Level.hpp"
 #include "Levels.hpp"
-
+#include "Graph.hpp"
+#include "Constants.hpp"
 /**
  * @class Game
  * @brief Logique pure du jeu : états, niveaux, mise à jour des objets.
@@ -41,7 +42,8 @@ private:
     // ── État logique ─────────────────────────────────────────────────
     GameState state        = GameState::MENU;
     bool      running      = true;
-    bool      enterPressed = false;
+    bool      enterPressed     = false;
+    bool      debugSkipPressed = false; ///< Anti-répétition pour F2 (debug)
 
     // ── Système de niveaux ───────────────────────────────────────────
     std::vector<Level> levels;           ///< Les 10 niveaux (buildLevels())
@@ -57,6 +59,9 @@ private:
     Menu menu;
     Menu pauseMenu;
     Menu optionsMenu;
+    // --- Graphique du nivau--
+    Graph graph;
+    Physics_E p;
 
     /**
      * @brief Charge le niveau d'index idx (plateformes + ennemis + spawn).

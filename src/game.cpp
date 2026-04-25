@@ -24,6 +24,7 @@ Game::Game()
     // Charger le premier niveau (les objets sont juste initialisés ici,
     // ils seront rechargés dès que le joueur clique "Start Game")
     loadLevel(0);
+
 }
 
 // ── Destructeur ───────────────────────────────────────────────────────────────
@@ -44,7 +45,14 @@ void Game::loadLevel(int idx)
 
     // Plateformes
     platforms = lv.platforms;
+    // ---- Graph ----
+    p.speed = 120.f;
+    p.jumpForce = JUMP_FORCE;
+    p.gravity = GRAVITY;
+    p.width = 50.f;
+    p.height = 50.f;
 
+    graph.build(platforms, p);
     // Ennemis
     enemies.clear();
     enemies.reserve(lv.enemies.size());
@@ -130,11 +138,21 @@ void Game::update(const Uint8* keys)
         // ── PLAYING ──────────────────────────────────────────────────────
         case GameState::PLAYING:
         {
+            // ── [DEBUG] F2 : passer immédiatement au niveau suivant ───────
+            if (keys[SDL_SCANCODE_F2] && !debugSkipPressed)
+            {
+                printf("[DEBUG] Skip niveau %d -> %d\n", currentLevel + 1, currentLevel + 2);
+                advanceLevel();
+                debugSkipPressed = true;
+                break;
+            }
+            if (!keys[SDL_SCANCODE_F2]) debugSkipPressed = false;
+
             player.handleInput(keys);
             player.update(DELTA, platforms);
 
             for (auto& e : enemies)
-                e.update(DELTA, player.getRect(), platforms);
+                e.update(DELTA, player.getRect(), platforms , graph);
 
             // Attaque joueur → ennemis
             if (player.isAttacking())
