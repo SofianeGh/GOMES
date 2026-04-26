@@ -46,8 +46,8 @@ void Game::loadLevel(int idx)
     // Plateformes
     platforms = lv.platforms;
     // ---- Graph ----
-    p.speed = 120.f;
-    p.jumpForce = JUMP_FORCE;
+    p.speed = 100.f;
+    p.jumpForce = -680.f;
     p.gravity = GRAVITY;
     p.width = 50.f;
     p.height = 50.f;

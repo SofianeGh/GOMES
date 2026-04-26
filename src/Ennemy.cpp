@@ -142,7 +142,7 @@ Arrow Ennemy::shootAt(const Rect& playerRect)
 
     //Centre de gravité du joueur
     float px = playerRect.x + playerRect.w * 0.5f;
-    float py = playerRect.y + playerRect.y * 0.5f;
+    float py = playerRect.y + playerRect.h * 0.5f;
 
     //calcul de la direction de la flèche
     float dx = px - posx;
@@ -212,6 +212,13 @@ void Ennemy::update(float dt, const Rect& playerRect, const std::vector<Platform
             jumpTimer = 0.f;
         }
     }
+    //Permet de décroitre le timer de recalcul de path une fois que l'ennemi a calculé un path vers le joueur
+    if (pathTimer > 0.f)
+    {
+    pathTimer -= dt;
+    if (pathTimer < 0.f) pathTimer = 0.f;
+    }
+    
 
     //Déclanche l'attaque
     if(canMeleeAttack(playerRect))
@@ -229,20 +236,29 @@ void Ennemy::update(float dt, const Rect& playerRect, const std::vector<Platform
     }
 
     float targetX = playerRect.x + playerRect.w * 0.5f;
-    bool needJump = false;
+bool needJump = false;
 
-    float enemyFeet = rect.y+ rect.h; 
+float enemyFeet = rect.y + rect.h;
 
-    if(path.size() >= 2)
+if (path.size() >= 2)
+{
+    const Node& next = graph.getNode(path[1]);
+    targetX = next.x;
+
+    // Cherche le premier noeud qui exige un saut dans le chemin complet
+    for (size_t i = 1; i < path.size(); ++i)
     {
-        const Node& next = graph.getNode(path[1]);
-        targetX = next.x;
-
-        if(next.y < enemyFeet -16.f)
+        const Node& n = graph.getNode(path[i]);
+        if (n.y < enemyFeet - 16.f)   // plateforme plus haute
         {
             needJump = true;
+            break;
         }
+        // Si on change de plateforme en marchant, pas besoin de chercher plus loin
+        if (n.platIndex != graph.getNode(path[0]).platIndex)
+            break;
     }
+}
 
     if(targetX > rect.x + rect.w * 0.5f)
     {
@@ -255,7 +271,7 @@ void Ennemy::update(float dt, const Rect& playerRect, const std::vector<Platform
 
     if(needJump && OnGround && jumpTimer <= 0.f)
     {
-        vy = JUMP_FORCE;
+        vy = -680.f;
         OnGround = false;
         jumpTimer = jumpCooldown;
     }

@@ -1,9 +1,5 @@
 #include "Levels.hpp"
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Macros helpers pour lisibilité
-// ─────────────────────────────────────────────────────────────────────────────
-
 #define WALL_L(lv)  (lv).platforms.emplace_back(   0.f,    0.f,  20.f, 1080.f)
 #define WALL_R(lv)  (lv).platforms.emplace_back(1900.f,    0.f,  20.f, 1080.f)
 #define FLOOR(lv)   (lv).platforms.emplace_back(   0.f, 1040.f, 1920.f,   40.f)
@@ -36,7 +32,7 @@ std::vector<Level> buildLevels()
         lv.spawnY   = 960.f;
         lv.exitZone = {1790.f, 140.f, 80.f, 80.f};
 
-        WALL_L(lv); WALL_R(lv); FLOOR(lv);
+       /* WALL_L(lv); WALL_R(lv); FLOOR(lv);
         // Escalier montant vers la droite-haut (6 marches)
         PLAT(lv,  220.f,  870.f, 220.f, 20.f);
         PLAT(lv,  540.f,  740.f, 200.f, 20.f);
@@ -44,7 +40,25 @@ std::vector<Level> buildLevels()
         PLAT(lv, 1180.f,  480.f, 200.f, 20.f);
         PLAT(lv, 1500.f,  350.f, 200.f, 20.f);
         PLAT(lv, 1720.f,  220.f, 160.f, 20.f); // près de la sortie
+*/
+// Niveau de test — NeedJump
+WALL_L(lv); WALL_R(lv); FLOOR(lv);
 
+// Sol de départ (spawn joueur + ennemi)
+PLAT(lv, 100.f, 950.f, 300.f, 20.f);
+
+// Marche 1 — gap de 100px (doit être faisable)
+PLAT(lv, 500.f, 800.f, 200.f, 20.f);
+
+// Marche 2 — gap de 130px (limite actuelle)
+PLAT(lv, 800.f, 670.f, 200.f, 20.f);
+
+// Marche 3 — gap de 160px (nécessite jumpForce -680)
+PLAT(lv, 1100.f, 510.f, 200.f, 20.f);
+
+// Sortie
+PLAT(lv, 1700.f, 400.f, 180.f, 20.f);
+ENEMY(lv, 120.f, 850.f, 50.f, 50.f, 100.f, 2, Pattern::MELEE);
         levels.push_back(std::move(lv));
     }
 
@@ -68,7 +82,7 @@ std::vector<Level> buildLevels()
 
         WALL_L(lv); WALL_R(lv); FLOOR(lv);
         PLAT(lv,  200.f,  990.f, 200.f, 20.f); // garde 1
-        PLAT(lv,  480.f,  990.f, 200.f, 20.f);
+        //PLAT(lv,  480.f,  990.f, 200.f, 20.f);
         PLAT(lv,  750.f,  770.f, 200.f, 20.f); // garde 2
         PLAT(lv, 1030.f,  770.f, 200.f, 20.f);
         PLAT(lv, 1300.f,  650.f, 200.f, 20.f);
