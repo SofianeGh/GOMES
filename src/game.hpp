@@ -13,6 +13,7 @@
 #include "Levels.hpp"
 #include "Graph.hpp"
 #include "Constants.hpp"
+#include "Arrow.hpp"
 /**
  * @class Game
  * @brief Logique pure du jeu : états, niveaux, mise à jour des objets.
@@ -62,6 +63,8 @@ private:
     // --- Graphique du nivau--
     Graph graph;
     Physics_E p;
+    //---Projeciles----
+    std::vector<Arrow> arrows;
 
     /**
      * @brief Charge le niveau d'index idx (plateformes + ennemis + spawn).

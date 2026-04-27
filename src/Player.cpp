@@ -82,16 +82,14 @@ void Player::handleInput(const Uint8* keys)
         vx = 0.f;
         if (!isDashingFlag)
         {
-            if (keys[SDL_SCANCODE_LEFT]  || keys[SDL_SCANCODE_A]) { vx = -MOVE_SPEED; dashDir = -1; }
-            if (keys[SDL_SCANCODE_RIGHT] || keys[SDL_SCANCODE_D]) { vx =  MOVE_SPEED; dashDir =  1; }
+            if (keys[MOVELEFT]  || keys[LEFT_KEY]) { vx = -MOVE_SPEED; dashDir = -1; }
+            if (keys[MOVERIGHT] || keys[RIGHT_KEY]) { vx =  MOVE_SPEED; dashDir =  1; }
         }
     }
 
     if (!isDashingFlag)
     {
-        bool jumpKey = keys[SDL_SCANCODE_SPACE]
-                    || keys[SDL_SCANCODE_UP]
-                    || keys[SDL_SCANCODE_W];
+        bool jumpKey = keys[JUMP_KEY] || keys[MOVEUP];
 
         if (jumpKey && !jumpHeld)
         {
@@ -114,7 +112,7 @@ void Player::handleInput(const Uint8* keys)
         }
         jumpHeld = jumpKey;
 
-        if (keys[SDL_SCANCODE_X] && dashCooldown <= 0.f)
+        if (keys[DASH_KEY] && dashCooldown <= 0.f)
         {
             isDashingFlag = true;
             dashTimer     = DASH_DURATION;
@@ -122,7 +120,7 @@ void Player::handleInput(const Uint8* keys)
             wallJumpTimer = 0.f;
         }
 
-        if (keys[SDL_SCANCODE_Z] && attackCooldown <= 0.f && !isAttackActive)
+        if (keys[ATTACK_KEY] && attackCooldown <= 0.f && !isAttackActive)
         {
             isAttackActive = true;
             attackTimer    = ATTACK_DURATION;

@@ -17,6 +17,9 @@ enum class Pattern
     BOSS
 };
 
+/**
+* @brief Classe mettant en place les ennemis du jeu
+*/
 class Ennemy
 {
     private: 

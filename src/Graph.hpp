@@ -23,6 +23,9 @@ struct Physics_E
     float speed, jumpForce, gravity, width, height;
 };
 
+/**
+* @brief Classe mettant en place le graph du jeu
+*/
 class Graph
 {
     private:

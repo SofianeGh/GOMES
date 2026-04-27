@@ -11,6 +11,7 @@
 #include "Ennemy.hpp"
 #include "Menu.hpp"
 #include "Rectangle.hpp"
+#include "Arrow.hpp"
 
 // ── État du jeu ───────────────────────────────────────────────────────────────
 enum class GameState {
@@ -55,6 +56,7 @@ public:
      * @param platforms     Plateformes du niveau courant
      * @param player        Joueur
      * @param enemies       Ennemis actifs du niveau
+     * @param arrows        flèches actives du niveau
      * @param menu          Menu principal
      * @param pauseMenu     Menu pause
      * @param optionsMenu   Menu options
@@ -71,6 +73,7 @@ public:
                 const std::vector<Platform>& platforms,
                 const Player&               player,
                 const std::vector<Ennemy>&  enemies,
+                const std::vector<Arrow>&   arrows,
                 Menu&                       menu,
                 Menu&                       pauseMenu,
                 Menu&                       optionsMenu,

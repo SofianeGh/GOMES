@@ -1,8 +1,9 @@
 #include "Menu.hpp"
+#include "Constants.hpp"
 #include <SDL2/SDL_ttf.h>
 #include <cstdio>
 
-// ⚠️ on récupère la font depuis main
+// récupérée depuis main
 extern TTF_Font* font;
 
 Menu::Menu() {
@@ -21,17 +22,16 @@ Menu::Menu(const std::vector<std::string>& opts) {
 
 void Menu::handleInput(const Uint8* state) {
 
-    if (state[SDL_SCANCODE_UP]) {
+    if (state[MOVEUP]) {
         if (!upPressed) {
-            if (selectedIndex == 0)
-                selectedIndex = options.size() - 1;
-            else
-                selectedIndex--;
+            selectedIndex = (selectedIndex == 0)
+                ? options.size() - 1
+                : selectedIndex - 1;
         }
         upPressed = true;
     } else upPressed = false;
 
-    if (state[SDL_SCANCODE_DOWN]) {
+    if (state[MOVEDOWN]) {
         if (!downPressed) {
             selectedIndex++;
             if (selectedIndex >= options.size())
@@ -45,41 +45,76 @@ int Menu::getSelected() const {
     return static_cast<int>(selectedIndex);
 }
 
+std::string Menu::getSelectedText() const {
+    return options[selectedIndex];
+}
+
+void Menu::setOptions(const std::vector<std::string>& opts) {
+    options = opts;
+    selectedIndex = 0;
+}
+
+void Menu::setSelected(size_t index) {
+    if (index < options.size())
+        selectedIndex = index;
+}
+
+std::string Menu::keyToString(SDL_Scancode key) {
+    return SDL_GetScancodeName(key);
+}
+
+void Menu::setKeyBindings(SDL_Scancode left, SDL_Scancode right, SDL_Scancode jump, SDL_Scancode dash, SDL_Scancode attack) {
+    leftKey = left;
+    rightKey = right;
+    jumpKey = jump;
+    dashKey = dash;
+    attackKey  = attack;
+
+    updateKeyDisplay();
+}
+
+void Menu::updateKeyDisplay() {
+    options = {
+        "Move Left: "  + keyToString(leftKey),
+        "Move Right: " + keyToString(rightKey),
+        "Jump: "       + keyToString(jumpKey),
+        "Dash: "       + keyToString(dashKey),
+        "Attack: "     + keyToString(attackKey),
+        "Back"
+    };
+}
+
 void Menu::render(SDL_Renderer* renderer) {
 
-    if (!font) return;  // sécurité font
+    if (!font) return;
 
-    size_t y = 200;
+    int winW, winH;
+    SDL_GetRendererOutputSize(renderer, &winW, &winH);
+
+    float startY = winH * 0.3f;
 
     for (size_t i = 0; i < options.size(); i++) {
 
         SDL_Color color = (i == selectedIndex)
-            ? SDL_Color{255, 0, 0, 255}   // sélection rouge
-            : SDL_Color{255, 255, 255, 255}; // blanc
+            ? SDL_Color{255, 0, 0, 255}
+            : SDL_Color{255, 255, 255, 255};
 
         SDL_Surface* surface = TTF_RenderText_Solid(font, options[i].c_str(), color);
-        if (!surface) {
-            printf("Erreur TTF_RenderText_Solid: %s\n", TTF_GetError());
-            continue;
-        }
+        if (!surface) continue;
 
         SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
         if (!texture) {
-            printf("Erreur SDL_CreateTextureFromSurface: %s\n", SDL_GetError());
             SDL_FreeSurface(surface);
             continue;
         }
 
-        SDL_Rect dst = {300, static_cast<int>(y), surface->w, surface->h};
+        int x = (winW - surface->w) / 2;
+        int y = static_cast<int>(startY + i * (surface->h + winH * 0.04f));
+
+        SDL_Rect dst = {x, y, surface->w, surface->h};
         SDL_RenderCopy(renderer, texture, nullptr, &dst);
 
         SDL_FreeSurface(surface);
         SDL_DestroyTexture(texture);
-
-        y += 60;
     }
-}
-
-std::string Menu::getSelectedText() const {
-    return options[selectedIndex];
 }

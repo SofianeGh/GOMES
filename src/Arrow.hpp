@@ -1,6 +1,9 @@
 #pragma once
 #include "Rectangle.hpp"
 
+/**
+* @brief Classe mettant en place les flèches du jeu
+*/
 class Arrow
 {
     private : 

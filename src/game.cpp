@@ -10,13 +10,21 @@ static constexpr float LEVEL_COMPLETE_DELAY = 2.5f;
 
 Game::Game()
     : menu({"Start Game", "Options", "Quit"}),
-      pauseMenu({"Reprendre", "Options", "Menu principal"}),
-      optionsMenu({"Gauche : A", "Droite : D", "Saut : Space", "Dash : X", "Retour"})
+      pauseMenu({"Resume", "Options", "Main Menu"})
 {
     if (!sdl.init(SCREEN_W, SCREEN_H)) {
         running = false;
         return;
     }
+
+    // init menu options avec touches
+    optionsMenu.setKeyBindings(
+        LEFT_KEY,
+        RIGHT_KEY,
+        JUMP_KEY,
+        DASH_KEY,
+        ATTACK_KEY
+    );
 
     // Construire les 10 niveaux
     levels = buildLevels();
@@ -101,7 +109,7 @@ void Game::run()
             nextName = levels[currentLevel + 1].name;
 
         sdl.render(state,
-                   platforms, player, enemies,
+                   platforms, player, enemies, arrows,
                    menu, pauseMenu, optionsMenu,
                    lv.bgColor, lv.platTop, lv.platBody,
                    lv.exitZone,
@@ -152,7 +160,39 @@ void Game::update(const Uint8* keys)
             player.update(DELTA, platforms);
 
             for (auto& e : enemies)
+            {
                 e.update(DELTA, player.getRect(), platforms , graph);
+                if (e.canShoot())
+                {
+                    arrows.push_back(e.shootAt(player.getRect()));
+                }
+            }    
+            for (auto& p : arrows)
+            {
+                p.update(DELTA);
+
+                if (overlaps(p.getRect(), player.getRect()))
+                {
+                    player.takeDamage(p.getDamage());
+                    p.disable();
+                }
+                for(auto& plat : platforms)
+                {
+                    if (overlaps(p.getRect(),plat.getRect()))
+                    {
+                        p.disable();
+                    }
+                }
+            }
+
+            for (size_t i = 0; i < arrows.size(); i++)
+            {
+                if (!arrows[i].isActive())
+                {
+                    arrows.erase(arrows.begin() + i);
+                    i--;
+                }
+            }
 
             // Attaque joueur → ennemis
             if (player.isAttacking())
@@ -215,40 +255,53 @@ void Game::update(const Uint8* keys)
         case GameState::OPTIONS:
         {
             optionsMenu.handleInput(keys);
-            if (keys[SDL_SCANCODE_RETURN] && !enterPressed)
-            {
+
+            if (keys[SDL_SCANCODE_RETURN] && !enterPressed) {
                 int choice = optionsMenu.getSelected();
-                if (choice == 4)
-                {
+
+                if (choice == 5) {
                     state = GameState::PAUSED;
-                }
-                else
-                {
-                    printf("Appuyez sur la nouvelle touche pour : %s\n",
-                           optionsMenu.getSelectedText().c_str());
+                } else {
+                    printf("Nouvelle touche...\n");
+
                     SDL_Event e;
                     bool waiting = true;
-                    while (waiting)
-                    {
-                        while (SDL_PollEvent(&e))
-                        {
-                            if (e.type == SDL_KEYDOWN)
-                            {
+
+                    while (waiting) {
+                        while (SDL_PollEvent(&e)) {
+                            if (e.type == SDL_KEYDOWN) {
+
                                 SDL_Scancode newKey = e.key.keysym.scancode;
+
                                 switch (choice) {
-                                    case 0: LEFT_KEY   = newKey; break;
-                                    case 1: RIGHT_KEY  = newKey; break;
-                                    case 2: JUMP_KEY   = newKey; break;
-                                    case 3: DASH_KEY   = newKey; break;
+                                    case 0: LEFT_KEY  = newKey; break;
+                                    case 1: RIGHT_KEY = newKey; break;
+                                    case 2: JUMP_KEY  = newKey; break;
+                                    case 3: DASH_KEY  = newKey; break;
+                                    case 4: ATTACK_KEY  = newKey; break;
                                 }
+
+                                //  mise à jour automatique du menu
+                                optionsMenu.setKeyBindings(
+                                    LEFT_KEY,
+                                    RIGHT_KEY,
+                                    JUMP_KEY,
+                                    DASH_KEY,
+                                    ATTACK_KEY
+                                );
+
                                 waiting = false;
                             }
                         }
                     }
                 }
+
                 enterPressed = true;
             }
-            else if (!keys[SDL_SCANCODE_RETURN]) { enterPressed = false; }
+            else if (!keys[SDL_SCANCODE_RETURN]) {
+                enterPressed = false;
+            }
+
             break;
         }
 

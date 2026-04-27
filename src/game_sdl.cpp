@@ -200,6 +200,7 @@ void GameSDL::render(GameState                    state,
                      const std::vector<Platform>& platforms,
                      const Player&               player,
                      const std::vector<Ennemy>&  enemies,
+                     const std::vector<Arrow>&   arrows,
                      Menu&                       menu,
                      Menu&                       pauseMenu,
                      Menu&                       optionsMenu,
@@ -247,6 +248,10 @@ void GameSDL::render(GameState                    state,
             // Ennemis
             for (const auto& e : enemies)
                 e.draw(renderer);
+
+            // Arrows
+            for (const auto& p : arrows)
+                p.draw(renderer);
 
             // Joueur
             drawPlayer(renderer, player);

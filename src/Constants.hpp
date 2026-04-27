@@ -6,6 +6,10 @@ extern SDL_Scancode RIGHT_KEY;
 extern SDL_Scancode JUMP_KEY;
 extern SDL_Scancode DASH_KEY;
 extern SDL_Scancode ATTACK_KEY;
+extern SDL_Scancode MOVELEFT;
+extern SDL_Scancode MOVERIGHT;
+extern SDL_Scancode MOVEUP;
+extern SDL_Scancode MOVEDOWN;
 /**
  * @file Constants.h
  * @brief Contient les constantes globales utilisées dans le jeu
